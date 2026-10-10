@@ -1,3 +1,5 @@
+use crate::consts::LINE_HEIGHT;
+use crate::desktop::Desktop;
 use crate::game::{GameContext, GameState};
 use crate::text_renderer::{FontsHandle, StyleSettings, TextStyle, draw_styled_text};
 use crate::typing::{CharacterState, TypingSession};
@@ -10,27 +12,39 @@ pub(crate) unsafe fn draw_ui(
     game: &mut GameContext,
     fonts: &FontsHandle,
 ) {
+    let frame_time = raylib_handle.get_frame_time();
     let mut drawing = raylib_handle.begin_drawing(thread);
     drawing.clear_background(Color::WHITE);
     draw_stats(game, &mut drawing, fonts);
 
-    match &game.game_state {
+    let selection_matches_stack =
+        (0..game.desktop.stacks.len()).any(|index| game.selection_matches_stack(index));
+    let desktop = &game.desktop;
+    match &mut game.game_state {
         GameState::SelectStack { input, error } => {
-            draw_stack_selection(game, &mut drawing, fonts, input, error);
+            draw_stack_selection(
+                desktop,
+                &mut drawing,
+                fonts,
+                input,
+                error,
+                selection_matches_stack,
+            );
         }
 
         GameState::WriteLeaf { typing, .. } => {
-            draw_leaf_typing(&mut drawing, fonts, typing);
+            draw_leaf_typing(&mut drawing, fonts, typing, frame_time);
         }
     }
 }
 
 pub(crate) fn draw_stack_selection(
-    game: &GameContext,
+    desktop: &Desktop,
     drawing: &mut RaylibDrawHandle,
     fonts: &FontsHandle,
     input: &str,
     error: &Option<String>,
+    selection_matches_stack: bool,
 ) {
     draw_styled_text(
         drawing,
@@ -40,7 +54,7 @@ pub(crate) fn draw_stack_selection(
         TextStyle::Body,
     );
 
-    for (index, stack) in game.desktop.stacks.iter().enumerate() {
+    for (index, stack) in desktop.stacks.iter().enumerate() {
         let x = 50 + index as i32 * 360;
         drawing.draw_rectangle_lines(x, 120, 330, 170, Color::DARKGRAY);
         draw_styled_text(
@@ -77,14 +91,10 @@ pub(crate) fn draw_stack_selection(
         }
     }
 
-    let selection_color = if (0..game.desktop.stacks.len())
-        .any(|index| !input.is_empty() && game.selection_matches_stack(index))
-    {
-        Color::BLACK
-    } else if input.is_empty() {
-        Color::BLACK
-    } else {
+    let selection_color = if !input.is_empty() && !selection_matches_stack {
         Color::RED
+    } else {
+        Color::BLACK
     };
     let body_settings = TextStyle::Body.get_settings(fonts);
     draw_styled_text(
@@ -113,7 +123,8 @@ pub(crate) fn draw_stack_selection(
 pub(crate) fn draw_leaf_typing(
     drawing: &mut RaylibDrawHandle,
     fonts: &FontsHandle,
-    typing: &TypingSession,
+    typing: &mut TypingSession,
+    frame_time: f32,
 ) {
     draw_styled_text(
         drawing,
@@ -122,7 +133,7 @@ pub(crate) fn draw_leaf_typing(
         Vector2::new(50.0, 65.0),
         TextStyle::Title,
     );
-    draw_typing_session(typing, drawing, fonts, 50, 110, 1100);
+    draw_typing_session(typing, drawing, fonts, 50, 110, 1100, frame_time);
     draw_styled_text(
         drawing,
         fonts,
@@ -147,16 +158,15 @@ pub(crate) fn draw_stats(game: &GameContext, drawing: &mut RaylibDrawHandle, fon
 }
 
 pub(crate) fn draw_typing_session(
-    typing_session: &TypingSession,
+    typing_session: &mut TypingSession,
     drawing: &mut RaylibDrawHandle,
     fonts: &FontsHandle,
     x: i32,
     y: i32,
     max_width: i32,
+    frame_time: f32,
 ) {
-    const LINE_HEIGHT: i32 = 36;
-
-    let body = TextStyle::Body.get_settings(fonts);
+    let settings = TextStyle::Body.get_settings(fonts);
 
     let mut cursor_x = x as f32;
     let mut cursor_y = y;
@@ -175,7 +185,7 @@ pub(crate) fn draw_typing_session(
 
         let text = character.to_string();
 
-        let char_width = drawing.measure_text(&text, body.font_size as i32) as f32;
+        let char_width = drawing.measure_text(&text, settings.font_size as i32) as f32;
 
         if cursor_x + char_width > (x + max_width) as f32 && cursor_x > x as f32 {
             cursor_x = x as f32;
@@ -189,7 +199,7 @@ pub(crate) fn draw_typing_session(
         let color = match typing_session.states[index] {
             CharacterState::Untyped => Color::DARKGRAY,
             CharacterState::Correct => Color::BLACK,
-            CharacterState::Incorrect => Color::RED,
+            CharacterState::Incorrect => Color::WHITE,
         };
 
         draw_styled_text(
@@ -199,9 +209,9 @@ pub(crate) fn draw_typing_session(
             Vector2::new(cursor_x, cursor_y as f32),
             TextStyle::Custom(StyleSettings {
                 color,
-                font: body.font,
-                font_size: body.font_size,
-                spacing: body.spacing,
+                font: settings.font,
+                font_size: settings.font_size,
+                spacing: settings.spacing,
             }),
         );
         cursor_x += char_width;
@@ -211,13 +221,39 @@ pub(crate) fn draw_typing_session(
         cursor_position = (cursor_x as i32, cursor_y);
     }
 
+    let cursor_position = typing_session.animate_cursor(
+        Vector2::new(cursor_position.0 as f32, cursor_position.1 as f32),
+        frame_time,
+    );
+    draw_cursor(drawing, &cursor_position, &settings, 2.0);
+}
+
+fn draw_cursor(
+    drawing: &mut RaylibDrawHandle,
+    cursor_position: &Vector2,
+    settings: &StyleSettings,
+    thickness: f32,
+) {
+    let height_modifier = 4.0;
+
     drawing.draw_line_ex(
-        Vector2::new((cursor_position.0 + 4) as f32, cursor_position.1 as f32),
-        Vector2::new(
-            (cursor_position.0 - 4) as f32,
-            cursor_position.1 as f32 + body.font_size,
-        ),
-        2.0,
-        Color::BLACK,
+        Vector2::new(cursor_position.x, cursor_position.y+height_modifier),
+        Vector2::new(cursor_position.x, cursor_position.y + settings.font_size-height_modifier),
+        thickness,
+        settings.color,
+    );
+
+    drawing.draw_line_ex(
+        Vector2::new(cursor_position.x + 4.0, cursor_position.y + settings.font_size-height_modifier),
+        Vector2::new(cursor_position.x - 4.0, cursor_position.y + settings.font_size-height_modifier),
+        thickness,
+        settings.color,
+    );
+
+    drawing.draw_line_ex(
+        Vector2::new(cursor_position.x + 4.0, cursor_position.y+height_modifier),
+        Vector2::new(cursor_position.x - 4.0, cursor_position.y+height_modifier),
+        thickness,
+        settings.color,
     );
 }

@@ -1,3 +1,6 @@
+use raylib::prelude::Vector2;
+use crate::consts::CURSOR_SPEED;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum CharacterState {
     Untyped,
@@ -10,6 +13,7 @@ pub struct TypingSession {
     pub(crate) target: Vec<char>,
     pub(crate) states: Vec<CharacterState>,
     pub(crate) cursor: usize,
+    cursor_position: Option<Vector2>,
 }
 
 impl TypingSession {
@@ -19,7 +23,16 @@ impl TypingSession {
             states: vec![CharacterState::Untyped; target.len()],
             target,
             cursor: 0,
+            cursor_position: None,
         }
+    }
+
+    pub(crate) fn animate_cursor(&mut self, target: Vector2, frame_time: f32) -> Vector2 {
+        let position = self.cursor_position.get_or_insert(target);
+        let smoothing = 1.0 - (-CURSOR_SPEED * frame_time.max(0.0)).exp();
+        position.x += (target.x - position.x) * smoothing;
+        position.y += (target.y - position.y) * smoothing;
+        *position
     }
 
     pub fn type_character(&mut self, character: char) {

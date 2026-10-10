@@ -151,7 +151,7 @@ pub(crate) fn draw_stats(game: &GameContext, drawing: &mut RaylibDrawHandle, fon
     draw_styled_text(
         drawing,
         fonts,
-        &format!("Saved leaves: {}", game.desktop.finished_leaves.len()),
+        &format!("You collected {} fragments, while making {} typing mistakes. You also transcribed {} out of {} leaves perfectly.", game.desktop.get_saved_fragments(), game.desktop.get_typing_errors(), game.desktop.get_perfect_leaves(), game.desktop.get_transcribed_leaves()),
         Vector2::new(50.0, 25.0),
         TextStyle::Info,
     );

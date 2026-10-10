@@ -20,4 +20,20 @@ impl Desktop {
             finished_leaves,
         }
     }
+    
+    pub(crate) fn get_saved_fragments(&self) -> usize {
+        self.finished_leaves.iter().map(|leaf| leaf.content.len()-leaf.typing_data.number_typing_errors as usize).sum()
+    }
+    
+    pub(crate) fn get_typing_errors(&self) -> usize {
+        self.finished_leaves.iter().map(|leaf| leaf.typing_data.number_typing_errors as usize).sum()
+    }
+    
+    pub(crate) fn get_perfect_leaves(&self) -> usize {
+        self.finished_leaves.iter().map(|leaf| if leaf.typing_data.number_typing_errors == 0 { 1 } else { 0 }).sum()
+    }
+    
+    pub(crate) fn get_transcribed_leaves(&self) -> usize {
+        self.finished_leaves.len()
+    }
 }

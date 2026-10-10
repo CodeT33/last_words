@@ -14,6 +14,7 @@ pub(crate) enum GameState {
     },
 }
 
+#[derive(Debug)]
 pub(crate) struct GameContext {
     pub(crate) desktop: Desktop,
     pub(crate) game_state: GameState,
@@ -117,19 +118,16 @@ impl GameContext {
             return false;
         }
 
-        let GameState::WriteLeaf { mut leaf, .. } = std::mem::replace(
+        let GameState::WriteLeaf { mut leaf, typing } = std::mem::replace(
             &mut self.game_state,
             GameState::SelectStack {
                 input: String::new(),
                 error: None,
             },
         ) else {
-            unreachable!("completed transcription should be in the writing state");
+            unreachable!("Completed transcription should be in the writing state");
         };
-        leaf.typing_data.number_typing_errors = match &self.game_state {
-            GameState::WriteLeaf { typing, .. } => typing.typing_errors() as u32,
-            _ => 0,
-        };
+        leaf.typing_data.number_typing_errors = typing.typing_errors() as u32;
         self.desktop.finished_leaves.push(leaf);
         true
     }

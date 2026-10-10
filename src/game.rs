@@ -49,12 +49,9 @@ impl GameContext {
     }
 
     pub(crate) fn backspace(&mut self) {
-        match &mut self.game_state {
-            GameState::SelectStack { input, error } => {
-                input.pop();
-                *error = None;
-            }
-            _ => (),
+        if let GameState::SelectStack { input, error } = &mut self.game_state {
+            input.pop();
+            *error = None;
         }
     }
 

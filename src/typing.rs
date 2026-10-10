@@ -1,5 +1,3 @@
-use raylib::prelude::{Color, RaylibDraw, RaylibDrawHandle};
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum CharacterState {
     Untyped,

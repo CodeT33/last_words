@@ -10,17 +10,17 @@ pub(crate) unsafe fn draw_ui(
     game: &mut GameContext,
     fonts: &FontsHandle,
 ) {
-    let mut drawing = raylib_handle.begin_drawing(&thread);
+    let mut drawing = raylib_handle.begin_drawing(thread);
     drawing.clear_background(Color::WHITE);
-    draw_stats(&game, &mut drawing, &fonts);
+    draw_stats(game, &mut drawing, fonts);
 
     match &game.game_state {
         GameState::SelectStack { input, error } => {
-            draw_stack_selection(&game, &mut drawing, &fonts, input, error);
+            draw_stack_selection(game, &mut drawing, fonts, input, error);
         }
 
         GameState::WriteLeaf { typing, .. } => {
-            draw_leaf_typing(&mut drawing, &fonts, typing);
+            draw_leaf_typing(&mut drawing, fonts, typing);
         }
     }
 }
@@ -154,60 +154,70 @@ pub(crate) fn draw_typing_session(
     y: i32,
     max_width: i32,
 ) {
-    const FONT_SIZE: i32 = 24;
-    const CELL_WIDTH: i32 = 18;
     const LINE_HEIGHT: i32 = 36;
 
-    let characters_per_line = (max_width / CELL_WIDTH).max(1) as usize;
+    let body = TextStyle::Body.get_settings(fonts);
+
+    let mut cursor_x = x as f32;
+    let mut cursor_y = y;
     let mut cursor_position = (x, y);
-    let mut line = 0;
-    let mut column = 0;
 
     for (index, character) in typing_session.target.iter().enumerate() {
-        if index == typing_session.cursor {
-            cursor_position = (x + column as i32 * CELL_WIDTH, y + line * LINE_HEIGHT);
-        }
         if *character == '\n' {
-            line += 1;
-            column = 0;
+            if index == typing_session.cursor {
+                cursor_position = (cursor_x as i32, cursor_y);
+            }
+
+            cursor_x = x as f32;
+            cursor_y += LINE_HEIGHT;
             continue;
         }
 
-        let char_x = x + column as i32 * CELL_WIDTH;
-        let char_y = y + line * LINE_HEIGHT;
+        let text = character.to_string();
+
+        let char_width = drawing.measure_text(&text, body.font_size as i32) as f32;
+
+        if cursor_x + char_width > (x + max_width) as f32 && cursor_x > x as f32 {
+            cursor_x = x as f32;
+            cursor_y += LINE_HEIGHT;
+        }
+
+        if index == typing_session.cursor {
+            cursor_position = (cursor_x as i32, cursor_y);
+        }
+
         let color = match typing_session.states[index] {
-            CharacterState::Untyped => Color::BLACK,
-            CharacterState::Correct => Color::GRAY,
+            CharacterState::Untyped => Color::DARKGRAY,
+            CharacterState::Correct => Color::BLACK,
             CharacterState::Incorrect => Color::RED,
         };
-        let body_settings = TextStyle::Body.get_settings(fonts);
+
         draw_styled_text(
             drawing,
-            &fonts,
-            &character.to_string(),
-            Vector2::new(char_x as f32, char_y as f32),
+            fonts,
+            &text,
+            Vector2::new(cursor_x, cursor_y as f32),
             TextStyle::Custom(StyleSettings {
                 color,
-                font: body_settings.font,
-                font_size: body_settings.font_size,
-                spacing: body_settings.spacing,
+                font: body.font,
+                font_size: body.font_size,
+                spacing: body.spacing,
             }),
         );
-        column += 1;
-        if column >= characters_per_line {
-            line += 1;
-            column = 0;
-        }
+        cursor_x += char_width;
     }
 
     if typing_session.cursor == typing_session.target.len() {
-        cursor_position = (x + column as i32 * CELL_WIDTH, y + line * LINE_HEIGHT);
+        cursor_position = (cursor_x as i32, cursor_y);
     }
-    drawing.draw_line(
-        cursor_position.0,
-        cursor_position.1 + FONT_SIZE + 8,
-        cursor_position.0 + CELL_WIDTH - 2,
-        cursor_position.1 + FONT_SIZE + 8,
-        Color::DARKGRAY,
+
+    drawing.draw_line_ex(
+        Vector2::new((cursor_position.0 + 4) as f32, cursor_position.1 as f32),
+        Vector2::new(
+            (cursor_position.0 - 4) as f32,
+            cursor_position.1 as f32 + body.font_size,
+        ),
+        2.0,
+        Color::BLACK,
     );
 }

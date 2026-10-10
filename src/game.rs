@@ -1,5 +1,7 @@
+use crate::consts::COUNTDOWN_IN_SECONDS;
 use crate::desktop::Desktop;
 use crate::leaves::Leaf;
+use crate::timer::Timer;
 use crate::typing::TypingSession;
 
 #[derive(Debug)]
@@ -12,6 +14,7 @@ pub(crate) enum GameState {
 pub(crate) struct GameContext {
     pub(crate) desktop: Desktop,
     pub(crate) game_state: GameState,
+    pub(crate) timer: Timer,
 }
 
 impl GameContext {
@@ -21,7 +24,12 @@ impl GameContext {
             game_state: GameState::SelectStack {
                 input: String::new(),
             },
+            timer: Timer::new(COUNTDOWN_IN_SECONDS),
         }
+    }
+
+    pub(crate) fn update(&mut self, delta_seconds: f32) {
+        self.timer.update(delta_seconds);
     }
 
     pub(crate) fn type_character(&mut self, character: char) -> bool {
@@ -73,18 +81,6 @@ impl GameContext {
             GameState::SelectStack { .. } => false,
             GameState::WriteLeaf { .. } => self.type_character('\n'),
         }
-    }
-
-    pub(crate) fn selection_matches_stack(&self, stack_index: usize) -> bool {
-        let GameState::SelectStack { input, .. } = &self.game_state else {
-            return false;
-        };
-        self.desktop
-            .stacks
-            .get(stack_index)
-            .and_then(|stack| stack.top_word())
-            .map(|word| input.is_empty() || Self::word_prefix_matches(word, input))
-            .unwrap_or(false)
     }
 
     fn select_stack(&mut self) -> bool {

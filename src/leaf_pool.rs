@@ -43,7 +43,8 @@ impl LeafPool {
     pub(crate) fn get_random(&self) -> Option<Leaf> {
         let content = self.leaves.choose(&mut rand::rng())?;
 
-        Some(Leaf::new(content.clone()))
+        let default = "default".to_string();
+        Some(Leaf::new(default, content.clone()))
     }
 
     fn add(&mut self, content: &str) {

@@ -6,6 +6,7 @@ pub mod leaf_pool;
 pub mod leaves;
 pub mod player;
 pub mod text_renderer;
+pub mod timer;
 pub mod typing;
 
 use crate::desktop::Desktop;
@@ -16,14 +17,16 @@ use crate::text_renderer::FontsHandle;
 use raylib::prelude::*;
 
 fn main() {
-    let leaf_pool = LeafPool::from_path("res/leaves/leaves1.md").unwrap();
-    let desktop = Desktop::new(&leaf_pool, 3, 2);
+    let leaf_pool = LeafPool::from_path("res/leaves/the_pot.md").unwrap();
+    let desktop = Desktop::new(&leaf_pool, 3, 8);
     let mut game = GameContext::new(desktop);
 
     let (mut raylib_handle, thread) = init().size(1200, 700).title("Last Words").build();
     let fonts = FontsHandle::load(&mut raylib_handle, &thread);
 
     while !raylib_handle.window_should_close() {
+        game.update(raylib_handle.get_frame_time());
+
         let mut typed_characters = Vec::new();
         while let Some(character) = raylib_handle.get_char_pressed() {
             typed_characters.push(character);

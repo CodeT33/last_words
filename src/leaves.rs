@@ -14,14 +14,16 @@ pub(crate) struct LeafSettings {
 
 #[derive(Debug)]
 pub(crate) struct Leaf {
+    pub(crate) pool: String,
     pub(crate) content: String,
     pub(crate) settings: LeafSettings,
     pub(crate) typing_data: TypingData,
 }
 
 impl Leaf {
-    pub(crate) fn new(content: String) -> Self {
+    pub(crate) fn new(pool: String, content: String) -> Self {
         Self {
+            pool,
             content,
             settings: LeafSettings::default(),
             typing_data: TypingData::default(),

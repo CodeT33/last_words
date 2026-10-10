@@ -59,19 +59,19 @@ impl<'a> TextStyle<'a> {
     pub(crate) fn get_settings(&self, fonts: &'a FontsHandle) -> StyleSettings<'a> {
         match self {
             Self::Body => StyleSettings {
-                color: Color::BLACK,
+                color: Color::WHITE,
                 font: &fonts.body,
                 font_size: 48.0,
                 spacing: 1.0,
             },
             Self::Title => StyleSettings {
-                color: Color::BLACK,
+                color: Color::WHITE,
                 font: &fonts.title,
                 font_size: 64.0,
                 spacing: 1.0,
             },
             Self::Info => StyleSettings {
-                color: Color::DARKGRAY,
+                color: Color::LIGHTGRAY,
                 font: &fonts.info,
                 font_size: 32.0,
                 spacing: 1.0,

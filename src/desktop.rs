@@ -13,7 +13,7 @@ impl Desktop {
         for _ in 0..number_of_stacks {
             stacks.push(StackOfLeaves::new(pool, stack_height));
         }
-        
+
         let finished_leaves = vec![];
         Self {
             stacks,

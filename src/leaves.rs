@@ -1,5 +1,5 @@
-use std::collections::VecDeque;
 use crate::leaf_pool::LeafPool;
+use std::collections::VecDeque;
 
 #[derive(Debug, Default)]
 pub(crate) struct TypingData {
@@ -63,5 +63,9 @@ impl StackOfLeaves {
         self.leaves.len()
     }
 
+    pub(crate) fn top_word(&self) -> Option<&str> {
+        self.leaves
+            .front()
+            .and_then(|leaf| leaf.content.split_whitespace().next())
+    }
 }
-

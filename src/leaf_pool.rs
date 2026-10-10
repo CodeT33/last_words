@@ -1,7 +1,7 @@
-use std::fs;
-use rand::prelude::IndexedRandom;
 use crate::consts::MAX_WORDS_PER_LEAF;
 use crate::leaves::Leaf;
+use rand::prelude::IndexedRandom;
+use std::fs;
 
 #[derive(Debug)]
 pub(crate) struct LeafPool {
@@ -11,9 +11,7 @@ pub(crate) struct LeafPool {
 impl LeafPool {
     pub(crate) fn from_path(path: &str) -> std::io::Result<Self> {
         let content = fs::read_to_string(path)?;
-        let mut pool = Self {
-            leaves: Vec::new(),
-        };
+        let mut pool = Self { leaves: Vec::new() };
 
         for line in content.lines() {
             let line = line.trim();

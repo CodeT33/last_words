@@ -1,6 +1,7 @@
-use crate::consts::LINE_HEIGHT;
+use crate::consts::{LINE_HEIGHT, ui_positions};
 use crate::desktop::Desktop;
 use crate::game::{GameContext, GameState};
+use crate::rendering::{AssetServer, TextureName, draw_sprite};
 use crate::text_renderer::{FontsHandle, StyleSettings, TextStyle, draw_styled_text};
 use crate::typing::{CharacterState, TypingSession};
 use raylib::prelude::{Color, RaylibDraw, RaylibDrawHandle, RaylibFont, Vector2};
@@ -11,23 +12,70 @@ pub(crate) unsafe fn draw_ui(
     thread: &RaylibThread,
     game: &mut GameContext,
     fonts: &FontsHandle,
+    asset_server: &AssetServer,
 ) {
     let frame_time = raylib_handle.get_frame_time();
     let mut drawing = raylib_handle.begin_drawing(thread);
     drawing.clear_background(Color::WHITE);
-    draw_stats(game, &mut drawing, fonts);
-    draw_timer(game, &mut drawing, fonts, Vector2::new(1090.0, 32.0));
+    draw_sprite(
+        &mut drawing,
+        asset_server,
+        TextureName::StackSelectionScreen,
+        Vector2::new(0.0, 0.0),
+        0.0,
+        4.0,
+    );
+    draw_sprite(
+        &mut drawing,
+        asset_server,
+        TextureName::JohnConcentrated,
+        Vector2::new(16.0 * 4.0 * 1.0, 16.0 * 4.0 * 2.5),
+        0.0,
+        4.0,
+    );
+
+    draw_timer(game, &mut drawing, fonts, ui_positions::COUNTDOWN);
+    draw_total_points(&mut drawing, fonts, ui_positions::TOTAL_POINTS);
 
     let desktop = &game.desktop;
+
     match &mut game.game_state {
         GameState::SelectStack { input } => {
-            draw_stack_selection(desktop, &mut drawing, fonts, input);
+            draw_stats(&desktop, &mut drawing, fonts, ui_positions::STATS);
+            draw_stack_selection(&game.desktop, &mut drawing, fonts, input);
         }
 
         GameState::WriteLeaf { typing, .. } => {
             draw_leaf_typing(&mut drawing, fonts, typing, frame_time);
         }
     }
+}
+
+pub(crate) fn draw_stats(
+    desktop: &Desktop,
+    drawing: &mut RaylibDrawHandle,
+    fonts: &FontsHandle,
+    position: Vector2,
+) {
+    draw_styled_text(
+        drawing,
+        fonts,
+        &format!(
+            "{} Done\n{} Perfect\n{} Chars\n{} Mistakes\n{}% Accuracy\n{} WPM",
+            desktop.get_transcribed_leaves(),
+            desktop.get_perfect_leaves(),
+            desktop.get_transcribed_chars(),
+            desktop.get_typing_errors(),
+            desktop.get_correct_transcribing_in_percent(),
+            67,
+        ),
+        position,
+        TextStyle::Info,
+    );
+}
+
+fn draw_total_points(drawing: &mut RaylibDrawHandle, fonts: &FontsHandle, position: Vector2) {
+    draw_styled_text(drawing, fonts, "000067", position, TextStyle::Title);
 }
 
 pub(crate) fn draw_stack_selection(
@@ -163,26 +211,6 @@ pub(crate) fn draw_leaf_typing(
     );
 }
 
-pub(crate) fn draw_stats(game: &GameContext, drawing: &mut RaylibDrawHandle, fonts: &FontsHandle) {
-    draw_styled_text(
-        drawing,
-        fonts,
-        &format!(
-            "You transcribed {} {} while containing {}% of the original text. You transcribed {} leaves perfectly.",
-            game.desktop.get_transcribed_leaves(),
-            if game.desktop.get_transcribed_leaves() == 1 {
-                "leaf"
-            } else {
-                "leaves"
-            },
-            game.desktop.get_correct_transcribing_in_percent(),
-            game.desktop.get_perfect_leaves()
-        ),
-        Vector2::new(50.0, 25.0),
-        TextStyle::Info,
-    );
-}
-
 pub(crate) fn draw_typing_session(
     typing_session: &mut TypingSession,
     drawing: &mut RaylibDrawHandle,
@@ -307,6 +335,6 @@ fn draw_timer(
         fonts,
         &game.timer.display(),
         position,
-        TextStyle::Info,
+        TextStyle::Title,
     );
 }

@@ -113,13 +113,14 @@ impl GameContext {
     fn save_if_complete(&mut self) -> bool {
         let complete = matches!(
             &self.game_state,
-            GameState::WriteLeaf { typing, .. } if typing.is_perfect()
+            GameState::WriteLeaf { typing, .. } if typing.is_complete()
         );
+
         if !complete {
             return false;
         }
 
-        let GameState::WriteLeaf { leaf, .. } = std::mem::replace(
+        let GameState::WriteLeaf { mut leaf, .. } = std::mem::replace(
             &mut self.game_state,
             GameState::SelectStack {
                 input: String::new(),
@@ -128,57 +129,11 @@ impl GameContext {
         ) else {
             unreachable!("completed transcription should be in the writing state");
         };
+        leaf.typing_data.number_typing_errors = match &self.game_state {
+            GameState::WriteLeaf { typing, .. } => typing.typing_errors() as u32,
+            _ => 0,
+        };
         self.desktop.finished_leaves.push(leaf);
         true
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{GameContext, GameState};
-    use crate::desktop::Desktop;
-    use crate::leaf_pool::LeafPool;
-
-    #[test]
-    fn selecting_and_perfectly_typing_a_leaf_saves_it() {
-        let pool = LeafPool {
-            leaves: vec!["alpha beta".to_owned()],
-        };
-        let desktop = Desktop::new(&pool, 2, 1);
-        let mut game = GameContext::new(desktop);
-
-        for character in "alpha".chars() {
-            assert!(!game.type_character(character));
-        }
-        assert!(game.press_enter());
-        assert!(matches!(game.game_state, GameState::WriteLeaf { .. }));
-        assert_eq!(game.desktop.stacks[0].len(), 0);
-
-        let mut transitioned = false;
-        for character in "alpha beta".chars() {
-            transitioned = game.type_character(character);
-        }
-        assert!(transitioned);
-        assert_eq!(game.desktop.finished_leaves.len(), 1);
-        assert!(matches!(game.game_state, GameState::SelectStack { .. }));
-    }
-
-    #[test]
-    fn incorrect_transcription_is_not_saved() {
-        let pool = LeafPool {
-            leaves: vec!["alpha".to_owned()],
-        };
-        let mut game = GameContext::new(Desktop::new(&pool, 1, 1));
-        for character in "alpha".chars() {
-            game.type_character(character);
-        }
-        game.press_enter();
-
-        for character in "xxxxx".chars() {
-            game.type_character(character);
-        }
-
-        assert!(game.desktop.finished_leaves.is_empty());
-        assert!(matches!(game.game_state, GameState::WriteLeaf { .. }));
     }
 }

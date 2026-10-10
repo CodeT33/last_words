@@ -3,8 +3,8 @@ use std::collections::VecDeque;
 
 #[derive(Debug, Default)]
 pub(crate) struct TypingData {
-    number_typing_errors: u32,
-    wpm: u32,
+    pub(crate) number_typing_errors: u32,
+    pub(crate) wpm: u32,
 }
 
 #[derive(Default, Debug)]

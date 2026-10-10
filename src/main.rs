@@ -17,7 +17,7 @@ use crate::text_renderer::FontsHandle;
 use raylib::prelude::*;
 
 fn main() {
-    let leaf_pool = LeafPool::from_path("res/leaves/the_pot.md").unwrap();
+    let leaf_pool = LeafPool::from_path("res/leaves/rational_gaze.md").unwrap();
     let desktop = Desktop::new(&leaf_pool, 3, 8);
     let mut game = GameContext::new(desktop);
 

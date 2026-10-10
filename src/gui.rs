@@ -4,7 +4,7 @@ use raylib::color::Color;
 use raylib::drawing::RaylibDraw;
 use raylib::prelude::RaylibDrawHandle;
 
-pub(crate) fn draw_stack_selection_ui(
+pub(crate) fn draw_stack_selection(
     game: &GameContext,
     drawing: &mut RaylibDrawHandle,
     input: &str,
@@ -66,7 +66,7 @@ pub(crate) fn draw_stack_selection_ui(
     );
 }
 
-pub(crate) fn draw_leaf_typing_ui(drawing: &mut RaylibDrawHandle, typing: &TypingSession) {
+pub(crate) fn draw_leaf_typing(drawing: &mut RaylibDrawHandle, typing: &TypingSession) {
     drawing.draw_text("Transcribe the page exactly:", 50, 65, 22, Color::BLACK);
     draw_typing_session(typing, drawing, 50, 110, 1100);
     drawing.draw_text(
@@ -99,7 +99,7 @@ pub(crate) fn draw_leaf_typing_ui(drawing: &mut RaylibDrawHandle, typing: &Typin
     }
 }
 
-pub(crate) fn draw_stats_ui(game: &GameContext, drawing: &mut RaylibDrawHandle) {
+pub(crate) fn draw_stats(game: &GameContext, drawing: &mut RaylibDrawHandle) {
     drawing.draw_text(
         &format!("Saved pages: {}", game.desktop.finished_leaves.len()),
         50,

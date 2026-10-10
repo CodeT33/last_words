@@ -9,7 +9,7 @@ pub mod typing;
 
 use crate::desktop::Desktop;
 use crate::game::{GameContext, GameState};
-use crate::gui::{draw_leaf_typing_ui, draw_stack_selection_ui, draw_stats_ui};
+use crate::gui::{draw_leaf_typing, draw_stack_selection, draw_stats};
 use crate::leaf_pool::LeafPool;
 use raylib::prelude::*;
 
@@ -43,15 +43,15 @@ fn main() {
 
         let mut drawing = raylib_handle.begin_drawing(&thread);
         drawing.clear_background(Color::WHITE);
-        draw_stats_ui(&game, &mut drawing);
+        draw_stats(&game, &mut drawing);
 
         match &game.game_state {
             GameState::SelectStack { input, error } => {
-                draw_stack_selection_ui(&game, &mut drawing, input, error);
+                draw_stack_selection(&game, &mut drawing, input, error);
             }
 
             GameState::WriteLeaf { typing, .. } => {
-                draw_leaf_typing_ui(&mut drawing, typing);
+                draw_leaf_typing(&mut drawing, typing);
             }
         }
     }

@@ -1,5 +1,5 @@
-use raylib::prelude::Vector2;
 use crate::consts::CURSOR_SPEED;
+use raylib::prelude::Vector2;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum CharacterState {

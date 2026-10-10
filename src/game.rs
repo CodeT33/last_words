@@ -4,14 +4,8 @@ use crate::typing::TypingSession;
 
 #[derive(Debug)]
 pub(crate) enum GameState {
-    SelectStack {
-        input: String,
-        error: Option<String>,
-    },
-    WriteLeaf {
-        leaf: Leaf,
-        typing: TypingSession,
-    },
+    SelectStack { input: String },
+    WriteLeaf { leaf: Leaf, typing: TypingSession },
 }
 
 #[derive(Debug)]
@@ -26,21 +20,40 @@ impl GameContext {
             desktop,
             game_state: GameState::SelectStack {
                 input: String::new(),
-                error: None,
             },
         }
     }
 
     pub(crate) fn type_character(&mut self, character: char) -> bool {
         match &mut self.game_state {
-            GameState::SelectStack { input, error } => {
-                if character == ' ' {
-                    return self.select_stack();
-                } else if !character.is_control() {
-                    input.push(character);
-                    *error = None;
+            GameState::SelectStack { input } => {
+                if character.is_control() {
+                    return false;
                 }
-                false
+
+                input.push(character);
+                let valid_prefix = self.desktop.stacks.iter().any(|stack| {
+                    stack
+                        .top_word()
+                        .map(|word| Self::word_prefix_matches(word, input))
+                        .unwrap_or(false)
+                });
+                if !valid_prefix {
+                    input.pop();
+                    return false;
+                }
+
+                let complete_word = self.desktop.stacks.iter().any(|stack| {
+                    stack
+                        .top_word()
+                        .map(|word| word.eq_ignore_ascii_case(input.as_str()))
+                        .unwrap_or(false)
+                });
+                if complete_word {
+                    self.select_stack()
+                } else {
+                    false
+                }
             }
             GameState::WriteLeaf { typing, .. } => {
                 typing.type_character(character);
@@ -50,15 +63,14 @@ impl GameContext {
     }
 
     pub(crate) fn backspace(&mut self) {
-        if let GameState::SelectStack { input, error } = &mut self.game_state {
+        if let GameState::SelectStack { input } = &mut self.game_state {
             input.pop();
-            *error = None;
         }
     }
 
     pub(crate) fn press_enter(&mut self) -> bool {
         match self.game_state {
-            GameState::SelectStack { .. } => self.select_stack(),
+            GameState::SelectStack { .. } => false,
             GameState::WriteLeaf { .. } => self.type_character('\n'),
         }
     }
@@ -67,15 +79,11 @@ impl GameContext {
         let GameState::SelectStack { input, .. } = &self.game_state else {
             return false;
         };
-        if input.is_empty() {
-            return true;
-        }
-
         self.desktop
             .stacks
             .get(stack_index)
             .and_then(|stack| stack.top_word())
-            .map(|word| word.to_lowercase().starts_with(&input.to_lowercase()))
+            .map(|word| input.is_empty() || Self::word_prefix_matches(word, input))
             .unwrap_or(false)
     }
 
@@ -83,7 +91,6 @@ impl GameContext {
         let GameState::SelectStack { input, .. } = &self.game_state else {
             return false;
         };
-        let input = input.trim();
         let selected = self.desktop.stacks.iter().position(|stack| {
             stack
                 .top_word()
@@ -103,7 +110,6 @@ impl GameContext {
 
         self.game_state = GameState::SelectStack {
             input: String::new(),
-            error: Some("No available stack has that top word.".to_owned()),
         };
         false
     }
@@ -122,7 +128,6 @@ impl GameContext {
             &mut self.game_state,
             GameState::SelectStack {
                 input: String::new(),
-                error: None,
             },
         ) else {
             unreachable!("Completed transcription should be in the writing state");
@@ -130,5 +135,15 @@ impl GameContext {
         leaf.typing_data.number_typing_errors = typing.typing_errors() as u32;
         self.desktop.finished_leaves.push(leaf);
         true
+    }
+
+    fn word_prefix_matches(word: &str, input: &str) -> bool {
+        let mut word_characters = word.chars();
+        input.chars().all(|input_character| {
+            word_characters
+                .next()
+                .map(|word_character| word_character.eq_ignore_ascii_case(&input_character))
+                .unwrap_or(false)
+        })
     }
 }

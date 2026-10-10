@@ -20,20 +20,51 @@ impl Desktop {
             finished_leaves,
         }
     }
-    
-    pub(crate) fn get_saved_fragments(&self) -> usize {
-        self.finished_leaves.iter().map(|leaf| leaf.content.len()-leaf.typing_data.number_typing_errors as usize).sum()
+
+    pub(crate) fn get_saved_chars(&self) -> usize {
+        self.finished_leaves
+            .iter()
+            .map(|leaf| leaf.content.len() - leaf.typing_data.number_typing_errors as usize)
+            .sum()
     }
-    
+
     pub(crate) fn get_typing_errors(&self) -> usize {
-        self.finished_leaves.iter().map(|leaf| leaf.typing_data.number_typing_errors as usize).sum()
+        self.finished_leaves
+            .iter()
+            .map(|leaf| leaf.typing_data.number_typing_errors as usize)
+            .sum()
     }
-    
+
     pub(crate) fn get_perfect_leaves(&self) -> usize {
-        self.finished_leaves.iter().map(|leaf| if leaf.typing_data.number_typing_errors == 0 { 1 } else { 0 }).sum()
+        self.finished_leaves
+            .iter()
+            .map(|leaf| {
+                if leaf.typing_data.number_typing_errors == 0 {
+                    1
+                } else {
+                    0
+                }
+            })
+            .sum()
     }
-    
+
     pub(crate) fn get_transcribed_leaves(&self) -> usize {
         self.finished_leaves.len()
+    }
+
+    pub(crate) fn get_transcribed_chars(&self) -> usize {
+        self.finished_leaves
+            .iter()
+            .map(|leaf| leaf.content.len())
+            .sum()
+    }
+
+    pub(crate) fn get_correct_transcribing_in_percent(&self) -> usize {
+        let total = self.get_transcribed_chars();
+        let saved = self.get_saved_chars();
+        if total == 0 {
+            return 0;
+        }
+        (saved as f32 / total as f32 * 100.0) as usize
     }
 }

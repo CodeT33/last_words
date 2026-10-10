@@ -21,15 +21,8 @@ pub(crate) unsafe fn draw_ui(
         (0..game.desktop.stacks.len()).any(|index| game.selection_matches_stack(index));
     let desktop = &game.desktop;
     match &mut game.game_state {
-        GameState::SelectStack { input, error } => {
-            draw_stack_selection(
-                desktop,
-                &mut drawing,
-                fonts,
-                input,
-                error,
-                selection_matches_stack,
-            );
+        GameState::SelectStack { input } => {
+            draw_stack_selection(desktop, &mut drawing, fonts, input, selection_matches_stack);
         }
 
         GameState::WriteLeaf { typing, .. } => {
@@ -43,13 +36,12 @@ pub(crate) fn draw_stack_selection(
     drawing: &mut RaylibDrawHandle,
     fonts: &FontsHandle,
     input: &str,
-    error: &Option<String>,
     selection_matches_stack: bool,
 ) {
     draw_styled_text(
         drawing,
         fonts,
-        "Choose a stack: type its top word, then press Enter or Space",
+        "Type a stack's word to select it.",
         Vector2::new(50.0, 65.0),
         TextStyle::Body,
     );
@@ -57,21 +49,16 @@ pub(crate) fn draw_stack_selection(
     for (index, stack) in desktop.stacks.iter().enumerate() {
         let x = 50 + index as i32 * 360;
         drawing.draw_rectangle_lines(x, 120, 330, 170, Color::DARKGRAY);
-        draw_styled_text(
-            drawing,
-            fonts,
-            &format!("Stack {}", index + 1),
-            Vector2::new((x + 20) as f32, 140.0),
-            TextStyle::Title,
-        );
         match stack.top_word() {
             Some(word) => {
-                draw_styled_text(
+                draw_stack_word(
                     drawing,
                     fonts,
                     word,
-                    Vector2::new((x + 20) as f32, 180.0),
-                    TextStyle::Body,
+                    input,
+                    input_matches_word(word, input),
+                    x + 20,
+                    180,
                 );
                 draw_styled_text(
                     drawing,
@@ -90,33 +77,53 @@ pub(crate) fn draw_stack_selection(
             ),
         }
     }
+}
 
-    let selection_color = if !input.is_empty() && !selection_matches_stack {
-        Color::RED
+fn input_matches_word(word: &str, input: &str) -> bool {
+    let mut word_characters = word.chars();
+    input.chars().all(|input_character| {
+        word_characters
+            .next()
+            .map(|word_character| word_character.eq_ignore_ascii_case(&input_character))
+            .unwrap_or(false)
+    })
+}
+
+fn draw_stack_word(
+    drawing: &mut RaylibDrawHandle,
+    fonts: &FontsHandle,
+    word: &str,
+    input: &str,
+    is_matching: bool,
+    x: i32,
+    y: i32,
+) {
+    let body = TextStyle::Body.get_settings(fonts);
+    let highlighted_characters = if is_matching {
+        input.chars().count()
     } else {
-        Color::BLACK
+        0
     };
-    let body_settings = TextStyle::Body.get_settings(fonts);
-    draw_styled_text(
-        drawing,
-        fonts,
-        &format!("Selection: {input}"),
-        Vector2::new(50.0, 340.0),
-        TextStyle::Custom(StyleSettings {
-            color: selection_color,
-            font: body_settings.font,
-            font_size: body_settings.font_size,
-            spacing: body_settings.spacing,
-        }),
-    );
-    if let Some(error) = error {
+    let mut char_x = x as f32;
+    let fading_word = format!("{}...", &word);
+
+    for (index, character) in fading_word.chars().enumerate() {
+        let text = character.to_string();
         draw_styled_text(
             drawing,
             fonts,
-            error,
-            Vector2::new(50.0, 390.0),
-            TextStyle::Error,
+            &text,
+            Vector2::new(char_x, y as f32),
+            TextStyle::Custom(StyleSettings {
+                color: if index < highlighted_characters {
+                    Color::BLACK
+                } else {
+                    Color::GRAY
+                },
+                ..body
+            }),
         );
+        char_x += drawing.measure_text(&text, body.font_size as i32) as f32;
     }
 }
 
@@ -151,7 +158,13 @@ pub(crate) fn draw_stats(game: &GameContext, drawing: &mut RaylibDrawHandle, fon
     draw_styled_text(
         drawing,
         fonts,
-        &format!("You collected {} fragments, while making {} typing mistakes. You also transcribed {} out of {} leaves perfectly.", game.desktop.get_saved_fragments(), game.desktop.get_typing_errors(), game.desktop.get_perfect_leaves(), game.desktop.get_transcribed_leaves()),
+        &format!(
+            "You transcribed {} {} while containing {}% of the original text. You transcribed {} leaves perfectly.",
+            game.desktop.get_transcribed_leaves(),
+            if game.desktop.get_transcribed_leaves() == 1 { "leaf"} else {"leaves"},
+            game.desktop.get_correct_transcribing_in_percent(),
+            game.desktop.get_perfect_leaves()
+        ),
         Vector2::new(50.0, 25.0),
         TextStyle::Info,
     );
@@ -237,22 +250,31 @@ fn draw_cursor(
     let height_modifier = 4.0;
 
     drawing.draw_line_ex(
-        Vector2::new(cursor_position.x, cursor_position.y+height_modifier),
-        Vector2::new(cursor_position.x, cursor_position.y + settings.font_size-height_modifier),
+        Vector2::new(cursor_position.x, cursor_position.y + height_modifier),
+        Vector2::new(
+            cursor_position.x,
+            cursor_position.y + settings.font_size - height_modifier,
+        ),
         thickness,
         settings.color,
     );
 
     drawing.draw_line_ex(
-        Vector2::new(cursor_position.x + 4.0, cursor_position.y + settings.font_size-height_modifier),
-        Vector2::new(cursor_position.x - 4.0, cursor_position.y + settings.font_size-height_modifier),
+        Vector2::new(
+            cursor_position.x + 4.0,
+            cursor_position.y + settings.font_size - height_modifier,
+        ),
+        Vector2::new(
+            cursor_position.x - 4.0,
+            cursor_position.y + settings.font_size - height_modifier,
+        ),
         thickness,
         settings.color,
     );
 
     drawing.draw_line_ex(
-        Vector2::new(cursor_position.x + 4.0, cursor_position.y+height_modifier),
-        Vector2::new(cursor_position.x - 4.0, cursor_position.y+height_modifier),
+        Vector2::new(cursor_position.x + 4.0, cursor_position.y + height_modifier),
+        Vector2::new(cursor_position.x - 4.0, cursor_position.y + height_modifier),
         thickness,
         settings.color,
     );

@@ -1,8 +1,10 @@
-use crate::consts::{LINE_HEIGHT, ui_positions};
+use crate::consts::{LINE_HEIGHT, TILE_SIZE, WINDOW_SIZE, ui_positions};
 use crate::desktop::Desktop;
 use crate::game::{GameContext, GameState};
+use crate::leaves::StackOfLeaves;
 use crate::rendering::{AssetServer, TextureName, draw_sprite};
 use crate::text_renderer::{FontsHandle, StyleSettings, TextStyle, draw_styled_text};
+use crate::timer::Timer;
 use crate::typing::{CharacterState, TypingSession};
 use raylib::prelude::{Color, RaylibDraw, RaylibDrawHandle, RaylibFont, Vector2};
 use raylib::{RaylibHandle, RaylibThread};
@@ -17,34 +19,34 @@ pub(crate) unsafe fn draw_ui(
     let frame_time = raylib_handle.get_frame_time();
     let mut drawing = raylib_handle.begin_drawing(thread);
     drawing.clear_background(Color::WHITE);
-    draw_sprite(
-        &mut drawing,
-        asset_server,
-        TextureName::StackSelectionScreen,
-        Vector2::new(0.0, 0.0),
-        0.0,
-        4.0,
-    );
-    draw_sprite(
-        &mut drawing,
-        asset_server,
-        TextureName::JohnConcentrated,
-        Vector2::new(16.0 * 4.0 * 1.0, 16.0 * 4.0 * 2.5),
-        0.0,
-        4.0,
-    );
-
-    draw_timer(game, &mut drawing, fonts, ui_positions::COUNTDOWN);
-    draw_total_points(&mut drawing, fonts, ui_positions::TOTAL_POINTS);
 
     let desktop = &game.desktop;
+    let game_state = &mut game.game_state;
+    let game_timer = &game.timer;
 
-    match &mut game.game_state {
+    match game_state {
         GameState::SelectStack { input } => {
+            draw_sprite(
+                &mut drawing,
+                asset_server,
+                TextureName::StackSelectionScreen,
+                Vector2::new(0.0, 0.0),
+                0.0,
+                4.0,
+            );
+            draw_sprite(
+                &mut drawing,
+                asset_server,
+                TextureName::JohnSurprised,
+                Vector2::new(TILE_SIZE as f32, TILE_SIZE as f32 * 2.5),
+                0.0,
+                4.0,
+            );
+            draw_timer(game_timer, &mut drawing, fonts, ui_positions::COUNTDOWN);
+            draw_total_points(&game.desktop, &mut drawing, fonts, ui_positions::TOTAL_POINTS);
             draw_stats(&desktop, &mut drawing, fonts, ui_positions::STATS);
             draw_stack_selection(&game.desktop, &mut drawing, fonts, input);
         }
-
         GameState::WriteLeaf { typing, .. } => {
             draw_leaf_typing(&mut drawing, fonts, typing, frame_time);
         }
@@ -74,8 +76,40 @@ pub(crate) fn draw_stats(
     );
 }
 
-fn draw_total_points(drawing: &mut RaylibDrawHandle, fonts: &FontsHandle, position: Vector2) {
-    draw_styled_text(drawing, fonts, "000067", position, TextStyle::Title);
+fn draw_total_points(desktop: &Desktop, drawing: &mut RaylibDrawHandle, fonts: &FontsHandle, position: Vector2) {
+    draw_styled_text(drawing, fonts, &format!("{:0>6} fp", desktop.get_total_points()), position, TextStyle::Title);
+}
+
+fn draw_stack_info(
+    stack: &StackOfLeaves,
+    drawing: &mut RaylibDrawHandle,
+    fonts: &FontsHandle,
+    input: &str,
+    stack_name: &str,
+    position: Vector2,
+) {
+    draw_styled_text(drawing, fonts, stack_name, position, TextStyle::Title);
+    match stack.top_word() {
+        Some(word) => {
+            draw_stack_word(
+                drawing,
+                fonts,
+                &word,
+                input,
+                input_matches_word(&word, &input),
+                Vector2::new(position.x + 0.8 * TILE_SIZE as f32, position.y + 8.0),
+            );
+        }
+        None => {
+            draw_styled_text(
+                drawing,
+                fonts,
+                "Stack Done",
+                Vector2::new(position.x + TILE_SIZE as f32, position.y),
+                TextStyle::Info,
+            );
+        }
+    }
 }
 
 pub(crate) fn draw_stack_selection(
@@ -87,50 +121,43 @@ pub(crate) fn draw_stack_selection(
     draw_styled_text(
         drawing,
         fonts,
-        "Type a stack's word to select it.",
-        Vector2::new(50.0, 65.0),
+        "A",
+        ui_positions::STACK_SIGN_A,
         TextStyle::Body,
     );
 
-    for (index, stack) in desktop.stacks.iter().enumerate() {
-        let x = 50 + index as i32 * 360;
-        drawing.draw_rectangle_lines(x, 120, 330, 170, Color::DARKGRAY);
-        match stack.top_word() {
-            Some(word) => {
-                draw_stack_word(
-                    drawing,
-                    fonts,
-                    word,
-                    input,
-                    input_matches_word(word, input),
-                    Vector2::new((x + 20) as f32, 180.0),
-                );
-                draw_styled_text(
-                    drawing,
-                    fonts,
-                    &format!("{} leaves remaining", stack.len()),
-                    Vector2::new((x + 20) as f32, 235.0),
-                    TextStyle::Info,
-                );
-            }
-            None => {
-                draw_styled_text(
-                    drawing,
-                    fonts,
-                    "EMPTY",
-                    Vector2::new((x + 20) as f32, 180.0),
-                    TextStyle::Info,
-                );
-                draw_styled_text(
-                    drawing,
-                    fonts,
-                    "No more leaves remaining",
-                    Vector2::new((x + 20) as f32, 235.0),
-                    TextStyle::Info,
-                );
-            }
-        }
-    }
+    draw_stack_info(
+        desktop.stacks.get(0).unwrap(),
+        drawing,
+        fonts,
+        input,
+        "A",
+        ui_positions::STACK_A,
+    );
+    draw_stack_info(
+        desktop.stacks.get(1).unwrap(),
+        drawing,
+        fonts,
+        input,
+        "B",
+        ui_positions::STACK_B,
+    );
+    draw_stack_info(
+        desktop.stacks.get(2).unwrap(),
+        drawing,
+        fonts,
+        input,
+        "C",
+        ui_positions::STACK_C,
+    );
+    draw_stack_info(
+        desktop.stacks.get(3).unwrap(),
+        drawing,
+        fonts,
+        input,
+        "D",
+        ui_positions::STACK_D,
+    );
 }
 
 fn input_matches_word(word: &str, input: &str) -> bool {
@@ -169,7 +196,7 @@ fn draw_stack_word(
             Vector2::new(char_x, positon.y),
             TextStyle::Custom(StyleSettings {
                 color: if index < highlighted_characters {
-                    Color::BLACK
+                    Color::WHITE
                 } else {
                     Color::GRAY
                 },
@@ -197,7 +224,14 @@ pub(crate) fn draw_leaf_typing(
         Vector2::new(50.0, 65.0),
         TextStyle::Title,
     );
-    draw_typing_session(typing, drawing, fonts, 50, 130, 1100, frame_time);
+    draw_typing_session(
+        typing,
+        drawing,
+        fonts,
+        Vector2::new(TILE_SIZE as f32 * 1.0, TILE_SIZE as f32 * 3.0),
+        WINDOW_SIZE.0 - TILE_SIZE as i32 * 2,
+        frame_time,
+    );
     draw_styled_text(
         drawing,
         fonts,
@@ -215,16 +249,15 @@ pub(crate) fn draw_typing_session(
     typing_session: &mut TypingSession,
     drawing: &mut RaylibDrawHandle,
     fonts: &FontsHandle,
-    x: i32,
-    y: i32,
+    position: Vector2,
     max_width: i32,
     frame_time: f32,
 ) {
     let settings = TextStyle::Body.get_settings(fonts);
 
-    let mut cursor_x = x as f32;
-    let mut cursor_y = y as f32;
-    let mut cursor_position = (x as f32, y as f32);
+    let mut cursor_x = position.x;
+    let mut cursor_y = position.y;
+    let mut cursor_position = (position.x, position.y);
 
     for (index, character) in typing_session.target.iter().enumerate() {
         if *character == '\n' {
@@ -232,7 +265,7 @@ pub(crate) fn draw_typing_session(
                 cursor_position = (cursor_x, cursor_y);
             }
 
-            cursor_x = x as f32;
+            cursor_x = position.x;
             cursor_y += LINE_HEIGHT as f32;
             continue;
         }
@@ -244,8 +277,8 @@ pub(crate) fn draw_typing_session(
             .measure_text(&text, settings.font_size, settings.spacing)
             .x;
 
-        if cursor_x + char_width > (x + max_width) as f32 && cursor_x > x as f32 {
-            cursor_x = x as f32;
+        if cursor_x + char_width > (position.x + max_width as f32) && cursor_x > position.x {
+            cursor_x = position.x;
             cursor_y += LINE_HEIGHT as f32;
         }
 
@@ -325,7 +358,7 @@ fn draw_cursor(
 }
 
 fn draw_timer(
-    game: &GameContext,
+    game_timer: &Timer,
     drawing: &mut RaylibDrawHandle,
     fonts: &FontsHandle,
     position: Vector2,
@@ -333,7 +366,7 @@ fn draw_timer(
     draw_styled_text(
         drawing,
         fonts,
-        &game.timer.display(),
+        &game_timer.display(),
         position,
         TextStyle::Title,
     );

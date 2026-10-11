@@ -4,37 +4,28 @@ use raylib::prelude::{Font, Vector2};
 use raylib::{RaylibHandle, RaylibThread};
 
 pub(crate) struct FontsHandle {
-    pub(crate) body: Font,
-    pub(crate) title: Font,
-    pub(crate) info: Font,
-    pub(crate) error: Font,
+    pub(crate) regular: Font,
+    pub(crate) semi_bold: Font,
+    pub(crate) medium_italic: Font,
 }
 
 impl FontsHandle {
     pub(crate) fn load(handle: &mut RaylibHandle, thread: &RaylibThread) -> Self {
         Self {
-            body: handle
+            regular: handle
                 .load_font_ex(thread, "res/fonts/CormorantGaramond-Regular.ttf", 32, None)
-                .expect("Could not load body font"),
-            title: handle
+                .expect("Could not load regular font"),
+            semi_bold: handle
                 .load_font_ex(thread, "res/fonts/CormorantGaramond-SemiBold.ttf", 32, None)
-                .expect("Could not load title font"),
-            info: handle
+                .expect("Could not load semi_bold font"),
+            medium_italic: handle
                 .load_font_ex(
                     thread,
                     "res/fonts/CormorantGaramond-MediumItalic.ttf",
                     32,
                     None,
                 )
-                .expect("Could not load info font"),
-            error: handle
-                .load_font_ex(
-                    thread,
-                    "res/fonts/CormorantGaramond-MediumItalic.ttf",
-                    32,
-                    None,
-                )
-                .expect("Could not load error font"),
+                .expect("Could not load medium_italic font"),
         }
     }
 }
@@ -49,6 +40,7 @@ pub(crate) struct StyleSettings<'a> {
 
 pub(crate) enum TextStyle<'a> {
     Body,
+    BoldBody,
     Title,
     Info,
     Error,
@@ -60,25 +52,32 @@ impl<'a> TextStyle<'a> {
         match self {
             Self::Body => StyleSettings {
                 color: Color::WHITE,
-                font: &fonts.body,
+                font: &fonts.regular,
                 font_size: 48.0,
                 spacing: 1.0,
             },
+            Self::BoldBody => StyleSettings {
+                color: Color::WHITE,
+                font: &fonts.semi_bold,
+                font_size: 48.0,
+                spacing: 1.0,
+            },
+
             Self::Title => StyleSettings {
                 color: Color::WHITE,
-                font: &fonts.title,
+                font: &fonts.semi_bold,
                 font_size: 64.0,
                 spacing: 1.0,
             },
             Self::Info => StyleSettings {
                 color: Color::LIGHTGRAY,
-                font: &fonts.info,
+                font: &fonts.regular,
                 font_size: 32.0,
                 spacing: 1.0,
             },
             Self::Error => StyleSettings {
                 color: Color::RED,
-                font: &fonts.error,
+                font: &fonts.regular,
                 font_size: 32.0,
                 spacing: 1.0,
             },

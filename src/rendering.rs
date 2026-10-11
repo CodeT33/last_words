@@ -7,6 +7,7 @@ use raylib::prelude::{Color, RaylibDraw, Texture2D, Vector2};
 pub(crate) enum TextureName {
     StackSelectionScreen,
     JohnConcentrated,
+    JohnSurprised,
 }
 
 pub(crate) struct AssetServer {
@@ -63,6 +64,7 @@ impl TextureName {
         match self {
             Self::StackSelectionScreen => "res/textures/screens/i_am_typewriter.stack_selection.png",
             Self::JohnConcentrated => "res/textures/character/john.concentrated.png",
+            Self::JohnSurprised => "res/textures/character/john.surprised.png",
         }
     }
 }

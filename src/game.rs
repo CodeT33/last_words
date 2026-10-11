@@ -54,7 +54,7 @@ impl GameContext {
                 let complete_word = self.desktop.stacks.iter().any(|stack| {
                     stack
                         .top_word()
-                        .map(|word| word.eq_ignore_ascii_case(input.as_str()))
+                        .map(|word| word.eq_ignore_ascii_case(input))
                         .unwrap_or(false)
                 });
                 if complete_word {

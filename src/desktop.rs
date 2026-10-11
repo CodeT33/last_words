@@ -21,6 +21,15 @@ impl Desktop {
         }
     }
 
+    pub(crate) fn get_total_points(&self) -> usize {
+        let mut total_points = 0;
+        total_points += self.get_saved_chars();
+        total_points -= self.get_typing_errors()*2;
+        total_points *= 1.5 as usize * self.get_perfect_leaves()+1;
+        total_points += self.get_transcribed_leaves()*25;
+        total_points
+    }
+
     pub(crate) fn get_saved_chars(&self) -> usize {
         self.finished_leaves
             .iter()

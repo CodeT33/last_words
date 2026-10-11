@@ -10,25 +10,26 @@ pub mod timer;
 pub mod typing;
 pub mod rendering;
 
-use raylib::ffi::rlUnloadTexture;
+use crate::consts::{NUMBER_OF_STACKS, WINDOW_SIZE};
 use crate::desktop::Desktop;
 use crate::game::GameContext;
 use crate::gui::draw_ui;
 use crate::leaf_pool::LeafPool;
+use crate::rendering::{AssetServer, TextureName};
 use crate::text_renderer::FontsHandle;
 use raylib::prelude::*;
-use crate::rendering::{AssetServer, TextureName};
 
 fn main() {
     let leaf_pool = LeafPool::from_path("res/leaves/rational_gaze.md").unwrap();
-    let desktop = Desktop::new(&leaf_pool, 3, 8);
+    let desktop = Desktop::new(&leaf_pool, NUMBER_OF_STACKS, 8);
     let mut game = GameContext::new(desktop);
 
-    let (mut raylib_handle, thread) = init().size(144*4, 208*4).title("I am Typewriter").build();
+    let (mut raylib_handle, thread) = init().size(WINDOW_SIZE.0, WINDOW_SIZE.1).title("I am Typewriter").build();
     let fonts = FontsHandle::load(&mut raylib_handle, &thread);
     let mut asset_server = AssetServer::new();
-    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::StackSelectionScreen).expect("Couldn't load sprite");
-    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::JohnConcentrated).expect("Couldn't load sprite");
+    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::StackSelectionScreen).expect("");
+    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::JohnConcentrated).expect("");
+    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::JohnSurprised).expect("");
 
     while !raylib_handle.window_should_close() {
         game.update(raylib_handle.get_frame_time());

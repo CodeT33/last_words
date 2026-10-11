@@ -90,7 +90,7 @@ pub(crate) fn draw_stats(
 }
 
 fn draw_total_points(desktop: &Desktop, drawing: &mut RaylibDrawHandle, fonts: &FontsHandle, position: Vector2) {
-    draw_styled_text(drawing, fonts, &format!("{:0>7} P", desktop.get_total_points()), position, TextStyle::Title);
+    draw_styled_text(drawing, fonts, &format!("{:0>6} p", desktop.get_total_points()), position, TextStyle::Title);
 }
 
 fn draw_stack_info(
@@ -133,8 +133,25 @@ pub(crate) fn draw_stack_signs(desktop: &Desktop, drawing: &mut RaylibDrawHandle
 }
 
 fn draw_stack_of_leaves(drawing: &mut RaylibDrawHandle, fonts: &FontsHandle, content: &str, position: Vector2, desktop: &Desktop, asset_server: &AssetServer) {
-    draw_sprite(drawing, asset_server, TextureName::LeafBottom, position, 0.0, 4.0);
-    draw_styled_text(drawing, fonts, content, Vector2::new(position.x+22.0, position.y+TILE_SIZE), TextStyle::BoldBody);
+    let stack = match content {
+        "A" => desktop.stacks.get(0),
+        "B" => desktop.stacks.get(1),
+        "C" =>  desktop.stacks.get(2),
+        "D" => desktop.stacks.get(3),
+        &_ => None,
+    };
+    if stack.is_some() {
+        let mut stack_height = stack.unwrap().len();
+        if stack_height > 0 {
+            draw_styled_text(drawing, fonts, &format!("{} [{}]", content, stack_height), Vector2::new(position.x, position.y+TILE_SIZE), TextStyle::BoldBody);
+            draw_sprite(drawing, asset_server, TextureName::LeafBottom, position, 0.0, 4.0);
+            stack_height -= 1;
+        }
+        for i in 0..stack_height {
+            draw_sprite(drawing, asset_server, TextureName::LeafTop, Vector2::new(position.x, position.y-(4+i*8) as f32), 0.0, 4.0);
+        }
+    }
+
 }
 
 pub(crate) fn draw_stack_selection(

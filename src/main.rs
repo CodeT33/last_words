@@ -10,7 +10,7 @@ pub mod timer;
 pub mod typing;
 pub mod rendering;
 
-use crate::consts::{NUMBER_OF_STACKS, WINDOW_SIZE};
+use crate::consts::{MAX_STACK_HEIGHT, NUMBER_OF_STACKS, WINDOW_SIZE};
 use crate::desktop::Desktop;
 use crate::game::GameContext;
 use crate::gui::draw_ui;
@@ -20,9 +20,12 @@ use crate::text_renderer::FontsHandle;
 use raylib::prelude::*;
 
 fn main() {
-    let mut leaf_pool = LeafPool::from_path("res/leaves/leaves1.md").unwrap();
-    leaf_pool.add_from_path("res/leaves/the_pot.md");
-    let desktop = Desktop::new(&leaf_pool, NUMBER_OF_STACKS, 16);
+    let mut leaf_pool = LeafPool::from_path("res/leaves/test.md").unwrap();
+    // leaf_pool = LeafPool::from_path("res/leaves/nightingale.md");
+    // leaf_pool.add_from_path("res/leaves/the_pot.md");
+    // leaf_pool.add_from_path("res/leaves/rational_gaze.md");
+
+    let desktop = Desktop::new(&leaf_pool, NUMBER_OF_STACKS, MAX_STACK_HEIGHT);
     let mut game = GameContext::new(desktop);
 
     let (mut raylib_handle, thread) = init().size(WINDOW_SIZE.0, WINDOW_SIZE.1).title("I am Typewriter").build();

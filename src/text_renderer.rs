@@ -6,6 +6,7 @@ use raylib::{RaylibHandle, RaylibThread};
 pub(crate) struct FontsHandle {
     pub(crate) regular: Font,
     pub(crate) semi_bold: Font,
+    pub(crate) bold: Font,
     pub(crate) medium_italic: Font,
 }
 
@@ -13,15 +14,16 @@ impl FontsHandle {
     pub(crate) fn load(handle: &mut RaylibHandle, thread: &RaylibThread) -> Self {
         Self {
             regular: handle
-                .load_font_ex(thread, "res/fonts/CormorantGaramond-Regular.ttf", 32, None)
+                .load_font_ex(thread, "res/fonts/pixelify_sans/PixelifySans-Regular.ttf", 32, None)
                 .expect("Could not load regular font"),
             semi_bold: handle
-                .load_font_ex(thread, "res/fonts/CormorantGaramond-SemiBold.ttf", 32, None)
+                .load_font_ex(thread, "res/fonts/pixelify_sans/PixelifySans-SemiBold.ttf", 32, None)
                 .expect("Could not load semi_bold font"),
+            bold: handle.load_font_ex(thread, "res/fonts/pixelify_sans/PixelifySans-Bold.ttf", 32, None).expect("Could not load bold font"),
             medium_italic: handle
                 .load_font_ex(
                     thread,
-                    "res/fonts/CormorantGaramond-MediumItalic.ttf",
+                    "res/fonts/cormorant_garamond/CormorantGaramond-MediumItalic.ttf",
                     32,
                     None,
                 )
@@ -53,24 +55,23 @@ impl<'a> TextStyle<'a> {
             Self::Body => StyleSettings {
                 color: Color::WHITE,
                 font: &fonts.regular,
-                font_size: 48.0,
+                font_size: 32.0,
                 spacing: 1.0,
             },
             Self::BoldBody => StyleSettings {
                 color: Color::WHITE,
                 font: &fonts.semi_bold,
+                font_size: 32.0,
+                spacing: 1.0,
+            },
+            Self::Title => StyleSettings {
+                color: Color::WHITE,
+                font: &fonts.bold,
                 font_size: 48.0,
                 spacing: 1.0,
             },
-
-            Self::Title => StyleSettings {
-                color: Color::WHITE,
-                font: &fonts.semi_bold,
-                font_size: 64.0,
-                spacing: 1.0,
-            },
             Self::Info => StyleSettings {
-                color: Color::LIGHTGRAY,
+                color: Color::WHITE,
                 font: &fonts.regular,
                 font_size: 32.0,
                 spacing: 1.0,

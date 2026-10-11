@@ -20,14 +20,15 @@ use crate::text_renderer::FontsHandle;
 use raylib::prelude::*;
 
 fn main() {
-    let leaf_pool = LeafPool::from_path("res/leaves/rational_gaze.md").unwrap();
-    let desktop = Desktop::new(&leaf_pool, NUMBER_OF_STACKS, 8);
+    let leaf_pool = LeafPool::from_path("res/leaves/leaves1.md").unwrap();
+    let desktop = Desktop::new(&leaf_pool, NUMBER_OF_STACKS, 1);
     let mut game = GameContext::new(desktop);
 
     let (mut raylib_handle, thread) = init().size(WINDOW_SIZE.0, WINDOW_SIZE.1).title("I am Typewriter").build();
     let fonts = FontsHandle::load(&mut raylib_handle, &thread);
     let mut asset_server = AssetServer::new();
     asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::StackSelectionScreen).expect("");
+    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::LeafWritingScreen).expect("");
     asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::JohnConcentrated).expect("");
     asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::JohnSurprised).expect("");
 

@@ -1,11 +1,12 @@
-use crate::consts::{LINE_HEIGHT, TILE_SIZE, WINDOW_SIZE, ui_positions};
+use crate::consts::{ui_positions, LEAF_WRITING_WIDTH, LINE_HEIGHT, TILE_SIZE};
 use crate::desktop::Desktop;
 use crate::game::{GameContext, GameState};
 use crate::leaves::StackOfLeaves;
-use crate::rendering::{AssetServer, TextureName, draw_sprite};
-use crate::text_renderer::{FontsHandle, StyleSettings, TextStyle, draw_styled_text};
+use crate::rendering::{draw_sprite, AssetServer, TextureName};
+use crate::text_renderer::{draw_styled_text, FontsHandle, StyleSettings, TextStyle};
 use crate::timer::Timer;
 use crate::typing::{CharacterState, TypingSession};
+use raylib::ffi::CSSPalette;
 use raylib::prelude::{Color, RaylibDraw, RaylibDrawHandle, RaylibFont, Vector2};
 use raylib::{RaylibHandle, RaylibThread};
 
@@ -38,7 +39,7 @@ pub(crate) unsafe fn draw_ui(
                 &mut drawing,
                 asset_server,
                 TextureName::JohnSurprised,
-                Vector2::new(TILE_SIZE as f32, TILE_SIZE as f32 * 2.5),
+                Vector2::new(TILE_SIZE, TILE_SIZE * 2.5),
                 0.0,
                 4.0,
             );
@@ -48,7 +49,17 @@ pub(crate) unsafe fn draw_ui(
             draw_stack_selection(&game.desktop, &mut drawing, fonts, input);
         }
         GameState::WriteLeaf { typing, .. } => {
-            draw_leaf_typing(&mut drawing, fonts, typing, frame_time);
+            draw_sprite(
+                &mut drawing,
+                asset_server,
+                TextureName::LeafWritingScreen,
+                Vector2::new(0.0, 0.0),
+                0.0,
+                4.0,
+            );
+            draw_timer(game_timer, &mut drawing, fonts, ui_positions::COUNTDOWN);
+            draw_total_points(&game.desktop, &mut drawing, fonts, ui_positions::TOTAL_POINTS);
+            draw_leaf_writing(&mut drawing, fonts, typing, frame_time, ui_positions::LEAF_WRITING);
         }
     }
 }
@@ -59,15 +70,16 @@ pub(crate) fn draw_stats(
     fonts: &FontsHandle,
     position: Vector2,
 ) {
+    let errors = desktop.get_typing_errors();
     draw_styled_text(
         drawing,
         fonts,
         &format!(
-            "{} Done\n{} Perfect\n{} Chars\n{} Mistakes\n{}% Accuracy\n{} WPM",
+            "{} done\n{} perfect\n\n{} {}\n{}% acc.\n{} wpm",
             desktop.get_transcribed_leaves(),
             desktop.get_perfect_leaves(),
-            desktop.get_transcribed_chars(),
-            desktop.get_typing_errors(),
+            errors,
+            if errors == 1 {"error"} else {"errors"},
             desktop.get_correct_transcribing_in_percent(),
             67,
         ),
@@ -77,7 +89,7 @@ pub(crate) fn draw_stats(
 }
 
 fn draw_total_points(desktop: &Desktop, drawing: &mut RaylibDrawHandle, fonts: &FontsHandle, position: Vector2) {
-    draw_styled_text(drawing, fonts, &format!("{:0>6} fp", desktop.get_total_points()), position, TextStyle::Title);
+    draw_styled_text(drawing, fonts, &format!("{:0>7} p", desktop.get_total_points()), position, TextStyle::Title);
 }
 
 fn draw_stack_info(
@@ -88,7 +100,7 @@ fn draw_stack_info(
     stack_name: &str,
     position: Vector2,
 ) {
-    draw_styled_text(drawing, fonts, stack_name, position, TextStyle::Title);
+    draw_styled_text(drawing, fonts, stack_name, Vector2::new(position.x, position.y+8.0), TextStyle::Title);
     match stack.top_word() {
         Some(word) => {
             draw_stack_word(
@@ -97,15 +109,15 @@ fn draw_stack_info(
                 &word,
                 input,
                 input_matches_word(&word, &input),
-                Vector2::new(position.x + 0.8 * TILE_SIZE as f32, position.y + 8.0),
+                Vector2::new(position.x + 0.7 * TILE_SIZE, position.y + 16.0),
             );
         }
         None => {
             draw_styled_text(
                 drawing,
                 fonts,
-                "Stack Done",
-                Vector2::new(position.x + TILE_SIZE as f32, position.y),
+                "EMPTY",
+                Vector2::new(position.x + 0.7 * TILE_SIZE, position.y + 16.0),
                 TextStyle::Info,
             );
         }
@@ -198,7 +210,7 @@ fn draw_stack_word(
                 color: if index < highlighted_characters {
                     Color::WHITE
                 } else {
-                    Color::GRAY
+                    Color::LIGHTGRAY
                 },
                 ..body
             }),
@@ -211,38 +223,32 @@ fn draw_stack_word(
     }
 }
 
-pub(crate) fn draw_leaf_typing(
+pub(crate) fn draw_leaf_writing(
     drawing: &mut RaylibDrawHandle,
     fonts: &FontsHandle,
     typing: &mut TypingSession,
     frame_time: f32,
+    position: Vector2,
 ) {
-    draw_styled_text(
-        drawing,
-        fonts,
-        "Transcribe the page:",
-        Vector2::new(50.0, 65.0),
-        TextStyle::Title,
-    );
     draw_typing_session(
         typing,
         drawing,
         fonts,
-        Vector2::new(TILE_SIZE as f32 * 1.0, TILE_SIZE as f32 * 3.0),
-        WINDOW_SIZE.0 - TILE_SIZE as i32 * 2,
+        Vector2::new(position.x, position.y),
+        LEAF_WRITING_WIDTH,
         frame_time,
     );
-    draw_styled_text(
-        drawing,
-        fonts,
-        &format!(
-            "{}/{} characters",
-            typing.typed_characters(),
-            typing.character_count()
-        ),
-        Vector2::new(50.0, 620.0),
-        TextStyle::Info,
-    );
+    // draw_styled_text(
+    //     drawing,
+    //     fonts,
+    //     &format!(
+    //         "{}/{} characters",
+    //         typing.typed_characters(),
+    //         typing.character_count()
+    //     ),
+    //     Vector2::new(50.0, 620.0),
+    //     TextStyle::Info,
+    // );
 }
 
 pub(crate) fn draw_typing_session(
@@ -250,7 +256,7 @@ pub(crate) fn draw_typing_session(
     drawing: &mut RaylibDrawHandle,
     fonts: &FontsHandle,
     position: Vector2,
-    max_width: i32,
+    max_width: f32,
     frame_time: f32,
 ) {
     let settings = TextStyle::Body.get_settings(fonts);
@@ -287,9 +293,9 @@ pub(crate) fn draw_typing_session(
         }
 
         let color = match typing_session.states[index] {
-            CharacterState::Untyped => Color::DARKGRAY,
-            CharacterState::Correct => Color::BLACK,
-            CharacterState::Incorrect => Color::WHITE,
+            CharacterState::Untyped => Color::BLACK,
+            CharacterState::Correct => Color::WHITE,
+            CharacterState::Incorrect => Color::TRANSPARENT,
         };
 
         draw_styled_text(
@@ -315,7 +321,7 @@ pub(crate) fn draw_typing_session(
         Vector2::new(cursor_position.0, cursor_position.1),
         frame_time,
     );
-    draw_cursor(drawing, &cursor_position, &settings, 2.0);
+    draw_cursor(drawing, &cursor_position, &settings, 3.0);
 }
 
 fn draw_cursor(

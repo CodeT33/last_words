@@ -6,7 +6,7 @@ pub(crate) const TILE_SIZE: f32 = 64.0;
 pub(crate) const NUMBER_OF_STACKS: u32 = 4;
 pub(crate) const MAX_STACK_HEIGHT: u32 = 8;
 
-pub(crate) const WINDOW_SIZE: (i32, i32) = ((TILE_SIZE*9.0) as i32, (TILE_SIZE*13.0) as i32);
+pub(crate) const WINDOW_SIZE: (i32, i32) = ((TILE_SIZE * 9.0) as i32, (TILE_SIZE * 13.0) as i32);
 
 pub(crate) const LEAF_WRITING_WIDTH: f32 = TILE_SIZE * 6.0;
 

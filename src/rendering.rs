@@ -24,9 +24,9 @@ impl AssetServer {
             return Ok(());
         }
 
-        let texture = raylib.load_texture(thread, name.path()).map_err(|err| {
-            format!("failed to load texture '{}': {:?}", name.path(), err)
-        })?;
+        let texture = raylib
+            .load_texture(thread, name.path())
+            .map_err(|err| format!("failed to load texture '{}': {:?}", name.path(), err))?;
 
         self.map.insert(name, texture);
         Ok(())
@@ -59,13 +59,15 @@ pub(crate) enum TextureName {
     JohnConcentrated,
     JohnSurprised,
     LeafBottom,
-    LeafTop
+    LeafTop,
 }
 
 impl TextureName {
     pub const fn path(self) -> &'static str {
         match self {
-            Self::StackSelectionScreen => "res/textures/screens/i_am_typewriter.stack_selection.png",
+            Self::StackSelectionScreen => {
+                "res/textures/screens/i_am_typewriter.stack_selection.png"
+            }
             Self::LeafWritingScreen => "res/textures/screens/i_am_typewriter.leaf_writing.png",
             Self::JohnConcentrated => "res/textures/character/john.concentrated.png",
             Self::JohnSurprised => "res/textures/character/john.surprised.png",

@@ -5,10 +5,10 @@ pub mod gui;
 pub mod leaf_pool;
 pub mod leaves;
 pub mod player;
+pub mod rendering;
 pub mod text_renderer;
 pub mod timer;
 pub mod typing;
-pub mod rendering;
 
 use crate::consts::{MAX_STACK_HEIGHT, NUMBER_OF_STACKS, WINDOW_SIZE};
 use crate::desktop::Desktop;
@@ -21,22 +21,41 @@ use raylib::prelude::*;
 
 fn main() {
     let mut leaf_pool = LeafPool::from_path("res/leaves/test.md").unwrap();
-    // leaf_pool = LeafPool::from_path("res/leaves/nightingale.md");
-    // leaf_pool.add_from_path("res/leaves/the_pot.md");
-    // leaf_pool.add_from_path("res/leaves/rational_gaze.md");
+    leaf_pool.add_from_path("res/leaves/nightingale.md");
+    leaf_pool.add_from_path("res/leaves/the_pot.md");
+    leaf_pool.add_from_path("res/leaves/rational_gaze.md");
 
     let desktop = Desktop::new(&leaf_pool, NUMBER_OF_STACKS, MAX_STACK_HEIGHT);
     let mut game = GameContext::new(desktop);
 
-    let (mut raylib_handle, thread) = init().size(WINDOW_SIZE.0, WINDOW_SIZE.1).title("I am Typewriter").build();
+    let (mut raylib_handle, thread) = init()
+        .size(WINDOW_SIZE.0, WINDOW_SIZE.1)
+        .title("I am Typewriter")
+        .build();
     let fonts = FontsHandle::load(&mut raylib_handle, &thread);
     let mut asset_server = AssetServer::new();
-    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::StackSelectionScreen).expect("");
-    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::LeafWritingScreen).expect("");
-    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::JohnConcentrated).expect("");
-    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::JohnSurprised).expect("");
-    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::LeafTop).expect("");
-    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::LeafBottom).expect("");
+    asset_server
+        .load_sprite(
+            &mut raylib_handle,
+            &thread,
+            TextureName::StackSelectionScreen,
+        )
+        .expect("");
+    asset_server
+        .load_sprite(&mut raylib_handle, &thread, TextureName::LeafWritingScreen)
+        .expect("");
+    asset_server
+        .load_sprite(&mut raylib_handle, &thread, TextureName::JohnConcentrated)
+        .expect("");
+    asset_server
+        .load_sprite(&mut raylib_handle, &thread, TextureName::JohnSurprised)
+        .expect("");
+    asset_server
+        .load_sprite(&mut raylib_handle, &thread, TextureName::LeafTop)
+        .expect("");
+    asset_server
+        .load_sprite(&mut raylib_handle, &thread, TextureName::LeafBottom)
+        .expect("");
 
     while !raylib_handle.window_should_close() {
         game.update(raylib_handle.get_frame_time());
@@ -62,7 +81,13 @@ fn main() {
         }
 
         unsafe {
-            draw_ui(&mut raylib_handle, &thread, &mut game, &fonts, &asset_server);
+            draw_ui(
+                &mut raylib_handle,
+                &thread,
+                &mut game,
+                &fonts,
+                &asset_server,
+            );
         }
     }
 }

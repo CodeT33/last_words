@@ -35,14 +35,14 @@ impl LeafPool {
         let content = fs::read_to_string(path);
         for line in content.expect("REASON").lines() {
             let line = line.trim();
-            
+
             if line.is_empty() {
                 continue;
             }
             if line.starts_with('#') {
                 continue;
             }
-            
+
             let leaf_content = Self::truncate_line(line, MAX_WORDS_PER_LEAF);
             self.add(&leaf_content);
         }

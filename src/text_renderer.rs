@@ -14,13 +14,32 @@ impl FontsHandle {
     pub(crate) fn load(handle: &mut RaylibHandle, thread: &RaylibThread) -> Self {
         Self {
             regular: handle
-                .load_font_ex(thread, "res/fonts/pixelify_sans/PixelifySans-Regular.ttf", 32, None)
+                .load_font_ex(
+                    thread,
+                    "res/fonts/pixelify_sans/PixelifySans-Regular.ttf",
+                    32,
+                    None,
+                )
                 .expect("Could not load regular font"),
             semi_bold: handle
-                .load_font_ex(thread, "res/fonts/pixelify_sans/PixelifySans-SemiBold.ttf", 32, None)
+                .load_font_ex(
+                    thread,
+                    "res/fonts/pixelify_sans/PixelifySans-SemiBold.ttf",
+                    32,
+                    None,
+                )
                 .expect("Could not load semi_bold font"),
-            bold: handle.load_font_ex(thread, "res/fonts/pixelify_sans/PixelifySans-Bold.ttf", 32, None).expect("Could not load bold font"),
-            pixantiqua: handle.load_font_ex(thread, "res/fonts/pixantiqua.ttf", 32, None).expect(""),
+            bold: handle
+                .load_font_ex(
+                    thread,
+                    "res/fonts/pixelify_sans/PixelifySans-Bold.ttf",
+                    32,
+                    None,
+                )
+                .expect("Could not load bold font"),
+            pixantiqua: handle
+                .load_font_ex(thread, "res/fonts/pixantiqua.ttf", 32, None)
+                .expect(""),
         }
     }
 }

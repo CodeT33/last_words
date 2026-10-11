@@ -1,6 +1,6 @@
-use rand::RngExt;
 use crate::leaf_pool::LeafPool;
 use crate::leaves::{Leaf, StackOfLeaves};
+use rand::RngExt;
 
 #[derive(Debug)]
 pub(crate) struct Desktop {
@@ -12,7 +12,10 @@ impl Desktop {
     pub(crate) fn new(pool: &LeafPool, number_of_stacks: u32, max_stack_height: u32) -> Self {
         let mut stacks = Vec::with_capacity(number_of_stacks as usize);
         for _ in 0..number_of_stacks {
-            stacks.push(StackOfLeaves::new(pool, rand::rng().random_range(1..max_stack_height)));
+            stacks.push(StackOfLeaves::new(
+                pool,
+                rand::rng().random_range(1..max_stack_height),
+            ));
         }
 
         let finished_leaves = vec![];
@@ -25,9 +28,9 @@ impl Desktop {
     pub(crate) fn get_total_points(&self) -> i32 {
         let mut total_points: i32 = 0;
         total_points += self.get_saved_chars() as i32;
-        total_points -= (self.get_typing_errors()*5) as i32;
-        total_points += (self.get_transcribed_leaves()*50) as i32;
-        total_points *= (2 * self.get_perfect_leaves()+1) as i32;
+        total_points -= (self.get_typing_errors() * 5) as i32;
+        total_points += (self.get_transcribed_leaves() * 50) as i32;
+        total_points *= (2 * self.get_perfect_leaves() + 1) as i32;
         total_points
     }
 

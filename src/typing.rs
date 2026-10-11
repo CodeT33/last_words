@@ -28,7 +28,11 @@ fn trim_leaves(content: &str) -> String {
         .replace("ä", "ae")
         .replace("ü", "ue");
 
-    let trimmed = trimmed.lines().map(str::trim).collect::<Vec<_>>().join("\n");
+    let trimmed = trimmed
+        .lines()
+        .map(str::trim)
+        .collect::<Vec<_>>()
+        .join("\n");
     trim_whitespace(&trimmed)
 }
 

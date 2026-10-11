@@ -1,9 +1,9 @@
-use crate::consts::{ui_positions, LEAF_WRITING_WIDTH, LINE_HEIGHT, TILE_SIZE};
+use crate::consts::{LEAF_WRITING_WIDTH, LINE_HEIGHT, TILE_SIZE, ui_positions};
 use crate::desktop::Desktop;
 use crate::game::{GameContext, GameState};
 use crate::leaves::StackOfLeaves;
-use crate::rendering::{draw_sprite, AssetServer, TextureName};
-use crate::text_renderer::{draw_styled_text, FontsHandle, StyleSettings, TextStyle};
+use crate::rendering::{AssetServer, TextureName, draw_sprite};
+use crate::text_renderer::{FontsHandle, StyleSettings, TextStyle, draw_styled_text};
 use crate::timer::Timer;
 use crate::typing::{CharacterState, TypingSession};
 use raylib::ffi::CSSPalette;
@@ -44,7 +44,12 @@ pub(crate) unsafe fn draw_ui(
                 4.0,
             );
             draw_timer(game_timer, &mut drawing, fonts, ui_positions::COUNTDOWN);
-            draw_total_points(&game.desktop, &mut drawing, fonts, ui_positions::TOTAL_POINTS);
+            draw_total_points(
+                &game.desktop,
+                &mut drawing,
+                fonts,
+                ui_positions::TOTAL_POINTS,
+            );
             draw_stats(&desktop, &mut drawing, fonts, ui_positions::STATS);
             draw_stack_selection(&game.desktop, &mut drawing, fonts, input);
             draw_stack_signs(&game.desktop, &mut drawing, &asset_server, fonts);
@@ -59,8 +64,19 @@ pub(crate) unsafe fn draw_ui(
                 4.0,
             );
             draw_timer(game_timer, &mut drawing, fonts, ui_positions::COUNTDOWN);
-            draw_total_points(&game.desktop, &mut drawing, fonts, ui_positions::TOTAL_POINTS);
-            draw_leaf_writing(&mut drawing, fonts, typing, frame_time, ui_positions::LEAF_WRITING);
+            draw_total_points(
+                &game.desktop,
+                &mut drawing,
+                fonts,
+                ui_positions::TOTAL_POINTS,
+            );
+            draw_leaf_writing(
+                &mut drawing,
+                fonts,
+                typing,
+                frame_time,
+                ui_positions::LEAF_WRITING,
+            );
         }
     }
 }
@@ -80,7 +96,7 @@ pub(crate) fn draw_stats(
             desktop.get_transcribed_leaves(),
             desktop.get_perfect_leaves(),
             errors,
-            if errors == 1 {"error"} else {"errors"},
+            if errors == 1 { "error" } else { "errors" },
             desktop.get_correct_transcribing_in_percent(),
             desktop.get_average_wpm(),
         ),
@@ -89,8 +105,19 @@ pub(crate) fn draw_stats(
     );
 }
 
-fn draw_total_points(desktop: &Desktop, drawing: &mut RaylibDrawHandle, fonts: &FontsHandle, position: Vector2) {
-    draw_styled_text(drawing, fonts, &format!("{:0>6} p", desktop.get_total_points()), position, TextStyle::Title);
+fn draw_total_points(
+    desktop: &Desktop,
+    drawing: &mut RaylibDrawHandle,
+    fonts: &FontsHandle,
+    position: Vector2,
+) {
+    draw_styled_text(
+        drawing,
+        fonts,
+        &format!("{:0>6} p", desktop.get_total_points()),
+        position,
+        TextStyle::Title,
+    );
 }
 
 fn draw_stack_info(
@@ -101,7 +128,13 @@ fn draw_stack_info(
     stack_name: &str,
     position: Vector2,
 ) {
-    draw_styled_text(drawing, fonts, stack_name, Vector2::new(position.x, position.y+8.0), TextStyle::Title);
+    draw_styled_text(
+        drawing,
+        fonts,
+        stack_name,
+        Vector2::new(position.x, position.y + 8.0),
+        TextStyle::Title,
+    );
     match stack.top_word() {
         Some(word) => {
             draw_stack_word(
@@ -125,33 +158,92 @@ fn draw_stack_info(
     }
 }
 
-pub(crate) fn draw_stack_signs(desktop: &Desktop, drawing: &mut RaylibDrawHandle, asset_server: &AssetServer, fonts: &FontsHandle) {
-    draw_stack_of_leaves(drawing, fonts, "A", ui_positions::STACK_SIGN_A, &desktop, asset_server);
-    draw_stack_of_leaves(drawing, fonts, "B", ui_positions::STACK_SIGN_B, &desktop, asset_server);
-    draw_stack_of_leaves(drawing, fonts, "C", ui_positions::STACK_SIGN_C, &desktop, asset_server);
-    draw_stack_of_leaves(drawing, fonts, "D", ui_positions::STACK_SIGN_D, &desktop, asset_server);
+pub(crate) fn draw_stack_signs(
+    desktop: &Desktop,
+    drawing: &mut RaylibDrawHandle,
+    asset_server: &AssetServer,
+    fonts: &FontsHandle,
+) {
+    draw_stack_of_leaves(
+        drawing,
+        fonts,
+        "A",
+        ui_positions::STACK_SIGN_A,
+        &desktop,
+        asset_server,
+    );
+    draw_stack_of_leaves(
+        drawing,
+        fonts,
+        "B",
+        ui_positions::STACK_SIGN_B,
+        &desktop,
+        asset_server,
+    );
+    draw_stack_of_leaves(
+        drawing,
+        fonts,
+        "C",
+        ui_positions::STACK_SIGN_C,
+        &desktop,
+        asset_server,
+    );
+    draw_stack_of_leaves(
+        drawing,
+        fonts,
+        "D",
+        ui_positions::STACK_SIGN_D,
+        &desktop,
+        asset_server,
+    );
 }
 
-fn draw_stack_of_leaves(drawing: &mut RaylibDrawHandle, fonts: &FontsHandle, content: &str, position: Vector2, desktop: &Desktop, asset_server: &AssetServer) {
+fn draw_stack_of_leaves(
+    drawing: &mut RaylibDrawHandle,
+    fonts: &FontsHandle,
+    content: &str,
+    position: Vector2,
+    desktop: &Desktop,
+    asset_server: &AssetServer,
+) {
     let stack = match content {
         "A" => desktop.stacks.get(0),
         "B" => desktop.stacks.get(1),
-        "C" =>  desktop.stacks.get(2),
+        "C" => desktop.stacks.get(2),
         "D" => desktop.stacks.get(3),
         &_ => None,
     };
     if stack.is_some() {
         let mut stack_height = stack.unwrap().len();
         if stack_height > 0 {
-            draw_styled_text(drawing, fonts, &format!("{} [{}]", content, stack_height), Vector2::new(position.x, position.y+TILE_SIZE), TextStyle::BoldBody);
-            draw_sprite(drawing, asset_server, TextureName::LeafBottom, position, 0.0, 4.0);
+            draw_styled_text(
+                drawing,
+                fonts,
+                &format!("{} [{}]", content, stack_height),
+                Vector2::new(position.x, position.y + TILE_SIZE),
+                TextStyle::BoldBody,
+            );
+            draw_sprite(
+                drawing,
+                asset_server,
+                TextureName::LeafBottom,
+                position,
+                0.0,
+                4.0,
+            );
             stack_height -= 1;
         }
         for i in 0..stack_height {
-            draw_sprite(drawing, asset_server, TextureName::LeafTop, Vector2::new(position.x, position.y-(4+i*8) as f32), 0.0, 4.0);
+            draw_sprite(
+                drawing,
+                asset_server,
+                TextureName::LeafTop,
+                Vector2::new(position.x, position.y - (4 + i * 8) as f32),
+                0.0,
+                4.0,
+            );
         }
     }
-
 }
 
 pub(crate) fn draw_stack_selection(
@@ -194,7 +286,13 @@ pub(crate) fn draw_stack_selection(
     );
 }
 
-fn draw_stack_sign(drawing: &mut RaylibDrawHandle, fonts: &FontsHandle, content: &str, position: Vector2, desktop: &Desktop) {
+fn draw_stack_sign(
+    drawing: &mut RaylibDrawHandle,
+    fonts: &FontsHandle,
+    content: &str,
+    position: Vector2,
+    desktop: &Desktop,
+) {
     todo!()
 }
 

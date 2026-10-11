@@ -17,17 +17,32 @@ pub struct TypingSession {
     elapsed_seconds: f32,
 }
 
+fn trim_leaves(content: &str) -> String {
+    let trimmed = content
+        .replace("\\n", "\n")
+        .replace("’", "'")
+        .replace("`", "'")
+        .replace("°", "degree")
+        .replace("ß", "ss")
+        .replace("ö", "oe")
+        .replace("ä", "ae")
+        .replace("ü", "ue");
+
+    let trimmed = trimmed.lines().map(str::trim).collect::<Vec<_>>().join("\n");
+    trim_whitespace(&trimmed)
+}
+
+pub fn trim_whitespace(content: &str) -> String {
+    let mut new_str: String = content.trim().to_owned();
+    while new_str.contains("  ") {
+        new_str = new_str.replace("  ", " ");
+    }
+    new_str
+}
+
 impl TypingSession {
     pub fn new(target: String) -> Self {
-        let target = target
-            .replace("\\n", "\n")
-            .replace("’", "'")
-            .replace("`", "'")
-            .replace("°", "degree")
-            .replace("ß", "ss")
-            .replace("ö", "oe")
-            .replace("ä", "ae")
-            .replace("ü", "ue");
+        let target = trim_leaves(&target);
         let target: Vec<char> = target.chars().collect();
         Self {
             states: vec![CharacterState::Untyped; target.len()],

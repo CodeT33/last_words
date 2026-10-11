@@ -32,6 +32,8 @@ fn main() {
     asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::LeafWritingScreen).expect("");
     asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::JohnConcentrated).expect("");
     asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::JohnSurprised).expect("");
+    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::LeafTop).expect("");
+    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::LeafBottom).expect("");
 
     while !raylib_handle.window_should_close() {
         game.update(raylib_handle.get_frame_time());

@@ -30,8 +30,20 @@ pub mod ui_positions {
         y: TILE_SIZE * 4.5,
     };
     pub(crate) const STACK_SIGN_A: Vector2 = Vector2 {
-        x: TILE_SIZE * 2.0,
-        y: TILE_SIZE * 8.5,
+        x: TILE_SIZE * 1.5,
+        y: TILE_SIZE * 7.8,
+    };
+    pub(crate) const STACK_SIGN_B: Vector2 = Vector2 {
+        x: TILE_SIZE * 3.0,
+        y: TILE_SIZE * 7.6,
+    };
+    pub(crate) const STACK_SIGN_C: Vector2 = Vector2 {
+        x: TILE_SIZE * 5.0,
+        y: TILE_SIZE * 8.0,
+    };
+    pub(crate) const STACK_SIGN_D: Vector2 = Vector2 {
+        x: TILE_SIZE * 6.5,
+        y: TILE_SIZE * 7.8,
     };
     pub(crate) const STACK_A: Vector2 = Vector2 {
         x: TILE_SIZE * 0.75,

@@ -47,6 +47,7 @@ pub(crate) unsafe fn draw_ui(
             draw_total_points(&game.desktop, &mut drawing, fonts, ui_positions::TOTAL_POINTS);
             draw_stats(&desktop, &mut drawing, fonts, ui_positions::STATS);
             draw_stack_selection(&game.desktop, &mut drawing, fonts, input);
+            draw_stack_signs(&game.desktop, &mut drawing, &asset_server, fonts);
         }
         GameState::WriteLeaf { typing, .. } => {
             draw_sprite(
@@ -87,7 +88,7 @@ pub(crate) fn draw_stats(
         TextStyle::Info,
     );
 }
-           
+
 fn draw_total_points(desktop: &Desktop, drawing: &mut RaylibDrawHandle, fonts: &FontsHandle, position: Vector2) {
     draw_styled_text(drawing, fonts, &format!("{:0>7} P", desktop.get_total_points()), position, TextStyle::Title);
 }
@@ -124,20 +125,24 @@ fn draw_stack_info(
     }
 }
 
+pub(crate) fn draw_stack_signs(desktop: &Desktop, drawing: &mut RaylibDrawHandle, asset_server: &AssetServer, fonts: &FontsHandle) {
+    draw_stack_of_leaves(drawing, fonts, "A", ui_positions::STACK_SIGN_A, &desktop, asset_server);
+    draw_stack_of_leaves(drawing, fonts, "B", ui_positions::STACK_SIGN_B, &desktop, asset_server);
+    draw_stack_of_leaves(drawing, fonts, "C", ui_positions::STACK_SIGN_C, &desktop, asset_server);
+    draw_stack_of_leaves(drawing, fonts, "D", ui_positions::STACK_SIGN_D, &desktop, asset_server);
+}
+
+fn draw_stack_of_leaves(drawing: &mut RaylibDrawHandle, fonts: &FontsHandle, content: &str, position: Vector2, desktop: &Desktop, asset_server: &AssetServer) {
+    draw_sprite(drawing, asset_server, TextureName::LeafBottom, position, 0.0, 4.0);
+    draw_styled_text(drawing, fonts, content, Vector2::new(position.x+22.0, position.y+TILE_SIZE), TextStyle::BoldBody);
+}
+
 pub(crate) fn draw_stack_selection(
     desktop: &Desktop,
     drawing: &mut RaylibDrawHandle,
     fonts: &FontsHandle,
     input: &str,
 ) {
-    draw_styled_text(
-        drawing,
-        fonts,
-        "A",
-        ui_positions::STACK_SIGN_A,
-        TextStyle::Body,
-    );
-
     draw_stack_info(
         desktop.stacks.get(0).unwrap(),
         drawing,
@@ -170,6 +175,10 @@ pub(crate) fn draw_stack_selection(
         "D",
         ui_positions::STACK_D,
     );
+}
+
+fn draw_stack_sign(drawing: &mut RaylibDrawHandle, fonts: &FontsHandle, content: &str, position: Vector2, desktop: &Desktop) {
+    todo!()
 }
 
 fn input_matches_word(word: &str, input: &str) -> bool {

@@ -58,6 +58,8 @@ pub(crate) enum TextureName {
     LeafWritingScreen,
     JohnConcentrated,
     JohnSurprised,
+    LeafBottom,
+    LeafTop
 }
 
 impl TextureName {
@@ -67,6 +69,8 @@ impl TextureName {
             Self::LeafWritingScreen => "res/textures/screens/i_am_typewriter.leaf_writing.png",
             Self::JohnConcentrated => "res/textures/character/john.concentrated.png",
             Self::JohnSurprised => "res/textures/character/john.surprised.png",
+            Self::LeafTop => "res/textures/leaves/brown_leaf_top.png",
+            Self::LeafBottom => "res/textures/leaves/brown_leaf_bottom.png",
         }
     }
 }

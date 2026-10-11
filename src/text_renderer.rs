@@ -55,6 +55,7 @@ pub(crate) struct StyleSettings<'a> {
 pub(crate) enum TextStyle<'a> {
     Body,
     BoldBody,
+    Huge,
     Title,
     Info,
     Error,
@@ -74,6 +75,12 @@ impl<'a> TextStyle<'a> {
                 color: Color::WHITE,
                 font: &fonts.semi_bold,
                 font_size: 32.0,
+                spacing: 1.0,
+            },
+            Self::Huge => StyleSettings {
+                color: Color::WHITE,
+                font: &fonts.bold,
+                font_size: 64.0,
                 spacing: 1.0,
             },
             Self::Title => StyleSettings {

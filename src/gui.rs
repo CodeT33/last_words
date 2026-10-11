@@ -1,4 +1,4 @@
-use rand::RngExt;
+use crate::consts::ui_positions::{TOTAL_POINTS_CALCULATION, TOTAL_POINTS_SIGN};
 use crate::consts::{LEAF_WRITING_WIDTH, LINE_HEIGHT, TILE_SIZE, ui_positions};
 use crate::desktop::Desktop;
 use crate::game::{GameContext, GameState};
@@ -7,6 +7,7 @@ use crate::rendering::{AssetServer, TextureName, draw_sprite};
 use crate::text_renderer::{FontsHandle, StyleSettings, TextStyle, draw_styled_text};
 use crate::timer::Timer;
 use crate::typing::{CharacterState, TypingSession};
+use rand::RngExt;
 use raylib::ffi::CSSPalette;
 use raylib::prelude::{Color, RaylibDraw, RaylibDrawHandle, RaylibFont, Vector2};
 use raylib::{RaylibHandle, RaylibThread};
@@ -77,6 +78,40 @@ pub(crate) unsafe fn draw_ui(
                 typing,
                 frame_time,
                 ui_positions::LEAF_WRITING,
+            );
+        }
+        GameState::TotalPoints => {
+            draw_sprite(
+                &mut drawing,
+                asset_server,
+                TextureName::TotalPointsScreen,
+                Vector2::new(0.0, 0.0),
+                0.0,
+                4.0,
+            );
+            draw_styled_text(
+                &mut drawing,
+                fonts,
+                &format!("{:0>6} p", game.desktop.get_total_points()),
+                TOTAL_POINTS_SIGN,
+                TextStyle::Huge,
+            );
+            let calc_text = &format!(
+                //"You transcribed {} leaves of paper. Out of those {} were copied perfectly.\nYou wrote {} characters while making {} errors.\nYou had a total accuracy of {}%.\nYou typed with a speed of around {} words per minute.",
+                "Perfectly transcribed: {}/{}\n{} mistakes in {} letters\n{}% accuracy {} wpm",
+                game.desktop.get_perfect_leaves(),
+                game.desktop.get_transcribed_leaves(),
+                game.desktop.get_typing_errors(),
+                game.desktop.get_transcribed_chars(),
+                game.desktop.get_correct_transcribing_in_percent(),
+                game.desktop.get_average_wpm(),
+            );
+            draw_styled_text(
+                &mut drawing,
+                fonts,
+                calc_text,
+                TOTAL_POINTS_CALCULATION,
+                TextStyle::Info,
             );
         }
     }
@@ -239,9 +274,12 @@ fn draw_stack_of_leaves(
                 drawing,
                 asset_server,
                 TextureName::LeafTop,
-                Vector2::new(position.x - 4.7 + (i as f32 *2.3)%4.7, position.y - (4 + i * 8) as f32),
+                Vector2::new(
+                    position.x - 4.7 + (i as f32 * 2.3) % 4.7,
+                    position.y - (4 + i * 8) as f32,
+                ),
                 i as f32 * 8.2 % 12.0,
-               4.0,
+                4.0,
             );
         }
     }

@@ -56,6 +56,7 @@ pub(crate) fn draw_sprite(
 pub(crate) enum TextureName {
     StackSelectionScreen,
     LeafWritingScreen,
+    TotalPointsScreen,
     JohnConcentrated,
     JohnSurprised,
     LeafBottom,
@@ -69,6 +70,7 @@ impl TextureName {
                 "res/textures/screens/i_am_typewriter.stack_selection.png"
             }
             Self::LeafWritingScreen => "res/textures/screens/i_am_typewriter.leaf_writing.png",
+            Self::TotalPointsScreen => "res/textures/screens/i_am_typewriter.total_points.png",
             Self::JohnConcentrated => "res/textures/character/john.concentrated.png",
             Self::JohnSurprised => "res/textures/character/john.surprised.png",
             Self::LeafTop => "res/textures/leaves/brown_leaf_top.png",

@@ -8,6 +8,7 @@ use crate::typing::TypingSession;
 pub(crate) enum GameState {
     SelectStack { input: String },
     WriteLeaf { leaf: Leaf, typing: TypingSession },
+    TotalPoints,
 }
 
 #[derive(Debug)]
@@ -29,7 +30,7 @@ impl GameContext {
     }
 
     pub(crate) fn update(&mut self, delta_seconds: f32) {
-        self.timer.update(delta_seconds);
+        self.timer.update(delta_seconds, &mut self.game_state);
         if let GameState::WriteLeaf { typing, .. } = &mut self.game_state {
             typing.update(delta_seconds);
         }
@@ -65,10 +66,13 @@ impl GameContext {
                 } else {
                     false
                 }
-            }
+            },
             GameState::WriteLeaf { typing, .. } => {
                 typing.type_character(character);
                 self.save_if_complete()
+            },
+            _ => {
+                false
             }
         }
     }
@@ -83,6 +87,7 @@ impl GameContext {
         match self.game_state {
             GameState::SelectStack { .. } => false,
             GameState::WriteLeaf { .. } => self.type_character('\n'),
+            _ => {false},
         }
     }
 

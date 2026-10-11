@@ -1,3 +1,6 @@
+use crate::desktop::Desktop;
+use crate::game::{GameContext, GameState};
+
 #[derive(Debug)]
 pub(crate) struct Timer {
     remaining_seconds: f32,
@@ -10,9 +13,12 @@ impl Timer {
         }
     }
 
-    pub(crate) fn update(&mut self, delta_seconds: f32) {
+    pub(crate) fn update(&mut self, delta_seconds: f32, game_state: &mut GameState) {
         if delta_seconds.is_finite() && delta_seconds > 0.0 {
             self.remaining_seconds = (self.remaining_seconds - delta_seconds).max(0.0);
+        }
+        if self.remaining_seconds == 0.0 {
+            *game_state = GameState::TotalPoints;
         }
     }
 

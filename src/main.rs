@@ -45,6 +45,9 @@ fn main() {
         .load_sprite(&mut raylib_handle, &thread, TextureName::LeafWritingScreen)
         .expect("");
     asset_server
+        .load_sprite(&mut raylib_handle, &thread, TextureName::TotalPointsScreen)
+        .expect("");
+    asset_server
         .load_sprite(&mut raylib_handle, &thread, TextureName::JohnConcentrated)
         .expect("");
     asset_server

@@ -21,12 +21,12 @@ impl Desktop {
         }
     }
 
-    pub(crate) fn get_total_points(&self) -> usize {
-        let mut total_points = 0;
-        total_points += self.get_saved_chars();
-        total_points -= self.get_typing_errors()*2;
-        total_points *= 1.5 as usize * self.get_perfect_leaves()+1;
-        total_points += self.get_transcribed_leaves()*25;
+    pub(crate) fn get_total_points(&self) -> i32 {
+        let mut total_points: i32 = 0;
+        total_points += self.get_saved_chars() as i32;
+        total_points -= (self.get_typing_errors()*5) as i32;
+        total_points += (self.get_transcribed_leaves()*50) as i32;
+        total_points *= (2 * self.get_perfect_leaves()+1) as i32;
         total_points
     }
 
@@ -75,5 +75,16 @@ impl Desktop {
             return 0;
         }
         (saved as f32 / total as f32 * 100.0) as usize
+    }
+
+    pub(crate) fn get_average_wpm(&self) -> usize {
+        if self.finished_leaves.is_empty() {
+            return 0;
+        }
+        self.finished_leaves
+            .iter()
+            .map(|leaf| leaf.typing_data.wpm as usize)
+            .sum::<usize>()
+            / self.finished_leaves.len()
     }
 }

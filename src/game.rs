@@ -30,6 +30,9 @@ impl GameContext {
 
     pub(crate) fn update(&mut self, delta_seconds: f32) {
         self.timer.update(delta_seconds);
+        if let GameState::WriteLeaf { typing, .. } = &mut self.game_state {
+            typing.update(delta_seconds);
+        }
     }
 
     pub(crate) fn type_character(&mut self, character: char) -> bool {
@@ -129,6 +132,7 @@ impl GameContext {
             unreachable!("Completed transcription should be in the writing state");
         };
         leaf.typing_data.number_typing_errors = typing.typing_errors() as u32;
+        leaf.typing_data.wpm = typing.words_per_minute();
         self.desktop.finished_leaves.push(leaf);
         true
     }

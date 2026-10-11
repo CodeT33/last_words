@@ -20,8 +20,9 @@ use crate::text_renderer::FontsHandle;
 use raylib::prelude::*;
 
 fn main() {
-    let leaf_pool = LeafPool::from_path("res/leaves/leaves1.md").unwrap();
-    let desktop = Desktop::new(&leaf_pool, NUMBER_OF_STACKS, 1);
+    let mut leaf_pool = LeafPool::from_path("res/leaves/leaves1.md").unwrap();
+    leaf_pool.add_from_path("res/leaves/the_pot.md");
+    let desktop = Desktop::new(&leaf_pool, NUMBER_OF_STACKS, 16);
     let mut game = GameContext::new(desktop);
 
     let (mut raylib_handle, thread) = init().size(WINDOW_SIZE.0, WINDOW_SIZE.1).title("I am Typewriter").build();

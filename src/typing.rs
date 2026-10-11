@@ -14,16 +14,33 @@ pub struct TypingSession {
     pub(crate) states: Vec<CharacterState>,
     pub(crate) cursor: usize,
     cursor_position: Option<Vector2>,
+    elapsed_seconds: f32,
 }
 
 impl TypingSession {
     pub fn new(target: String) -> Self {
+        let target = target
+            .replace("\\n", "\n")
+            .replace("’", "'")
+            .replace("`", "'")
+            .replace("°", "degree")
+            .replace("ß", "ss")
+            .replace("ö", "oe")
+            .replace("ä", "ae")
+            .replace("ü", "ue");
         let target: Vec<char> = target.chars().collect();
         Self {
             states: vec![CharacterState::Untyped; target.len()],
             target,
             cursor: 0,
             cursor_position: None,
+            elapsed_seconds: 0.0,
+        }
+    }
+
+    pub(crate) fn update(&mut self, delta_seconds: f32) {
+        if delta_seconds.is_finite() && delta_seconds > 0.0 && !self.is_complete() {
+            self.elapsed_seconds += delta_seconds;
         }
     }
 
@@ -40,7 +57,9 @@ impl TypingSession {
             return;
         }
 
-        self.states[self.cursor] = if character == self.target[self.cursor] {
+        self.states[self.cursor] = if (character == self.target[self.cursor]
+            || character.eq(&' ') && self.target[self.cursor] == '\n')
+        {
             CharacterState::Correct
         } else {
             CharacterState::Incorrect
@@ -81,5 +100,19 @@ impl TypingSession {
             .iter()
             .filter(|state| **state == CharacterState::Incorrect)
             .count()
+    }
+
+    pub fn words_per_minute(&self) -> u32 {
+        if self.elapsed_seconds <= 0.0 {
+            return 0;
+        }
+
+        let correct_characters = self
+            .states
+            .iter()
+            .filter(|state| **state == CharacterState::Correct)
+            .count();
+        let words = correct_characters as f32 / 5.0;
+        (words * 60.0 / self.elapsed_seconds).round() as u32
     }
 }

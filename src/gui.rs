@@ -81,15 +81,15 @@ pub(crate) fn draw_stats(
             errors,
             if errors == 1 {"error"} else {"errors"},
             desktop.get_correct_transcribing_in_percent(),
-            67,
+            desktop.get_average_wpm(),
         ),
         position,
         TextStyle::Info,
     );
 }
-
+           
 fn draw_total_points(desktop: &Desktop, drawing: &mut RaylibDrawHandle, fonts: &FontsHandle, position: Vector2) {
-    draw_styled_text(drawing, fonts, &format!("{:0>7} p", desktop.get_total_points()), position, TextStyle::Title);
+    draw_styled_text(drawing, fonts, &format!("{:0>7} P", desktop.get_total_points()), position, TextStyle::Title);
 }
 
 fn draw_stack_info(
@@ -264,6 +264,7 @@ pub(crate) fn draw_typing_session(
     let mut cursor_x = position.x;
     let mut cursor_y = position.y;
     let mut cursor_position = (position.x, position.y);
+    let content_right = position.x + max_width;
 
     for (index, character) in typing_session.target.iter().enumerate() {
         if *character == '\n' {
@@ -276,17 +277,32 @@ pub(crate) fn draw_typing_session(
             continue;
         }
 
+        if !character.is_whitespace()
+            && (index == 0 || typing_session.target[index - 1].is_whitespace())
+        {
+            let word_end = typing_session.target[index..]
+                .iter()
+                .position(|next| next.is_whitespace())
+                .map(|offset| index + offset)
+                .unwrap_or(typing_session.target.len());
+            let word: String = typing_session.target[index..word_end].iter().collect();
+            let word_width = settings
+                .font
+                .measure_text(&word, settings.font_size, settings.spacing)
+                .x;
+
+            if cursor_x > position.x && cursor_x + word_width > content_right {
+                cursor_x = position.x;
+                cursor_y += LINE_HEIGHT as f32;
+            }
+        }
+
         let text = character.to_string();
 
         let char_width = settings
             .font
             .measure_text(&text, settings.font_size, settings.spacing)
             .x;
-
-        if cursor_x + char_width > (position.x + max_width as f32) && cursor_x > position.x {
-            cursor_x = position.x;
-            cursor_y += LINE_HEIGHT as f32;
-        }
 
         if index == typing_session.cursor {
             cursor_position = (cursor_x, cursor_y);

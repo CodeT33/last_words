@@ -7,7 +7,7 @@ pub(crate) struct FontsHandle {
     pub(crate) regular: Font,
     pub(crate) semi_bold: Font,
     pub(crate) bold: Font,
-    pub(crate) medium_italic: Font,
+    pub(crate) pixantiqua: Font,
 }
 
 impl FontsHandle {
@@ -20,14 +20,7 @@ impl FontsHandle {
                 .load_font_ex(thread, "res/fonts/pixelify_sans/PixelifySans-SemiBold.ttf", 32, None)
                 .expect("Could not load semi_bold font"),
             bold: handle.load_font_ex(thread, "res/fonts/pixelify_sans/PixelifySans-Bold.ttf", 32, None).expect("Could not load bold font"),
-            medium_italic: handle
-                .load_font_ex(
-                    thread,
-                    "res/fonts/cormorant_garamond/CormorantGaramond-MediumItalic.ttf",
-                    32,
-                    None,
-                )
-                .expect("Could not load medium_italic font"),
+            pixantiqua: handle.load_font_ex(thread, "res/fonts/pixantiqua.ttf", 32, None).expect(""),
         }
     }
 }

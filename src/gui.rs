@@ -1,3 +1,4 @@
+use rand::RngExt;
 use crate::consts::{LEAF_WRITING_WIDTH, LINE_HEIGHT, TILE_SIZE, ui_positions};
 use crate::desktop::Desktop;
 use crate::game::{GameContext, GameState};
@@ -238,9 +239,9 @@ fn draw_stack_of_leaves(
                 drawing,
                 asset_server,
                 TextureName::LeafTop,
-                Vector2::new(position.x, position.y - (4 + i * 8) as f32),
-                0.0,
-                4.0,
+                Vector2::new(position.x - 4.7 + (i as f32 *2.3)%4.7, position.y - (4 + i * 8) as f32),
+                i as f32 * 8.2 % 12.0,
+               4.0,
             );
         }
     }

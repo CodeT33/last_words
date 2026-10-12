@@ -1,18 +1,16 @@
-use crate::consts::ui_positions::{TOTAL_POINTS_CALCULATION, TOTAL_POINTS_SIGN};
-use crate::consts::{LEAF_WRITING_WIDTH, LINE_HEIGHT, TILE_SIZE, ui_positions};
+use crate::consts::ui_positions::{RESTART_WORD, TOTAL_POINTS_CALCULATION, TOTAL_POINTS_SIGN};
+use crate::consts::{ui_positions, LEAF_WRITING_WIDTH, LINE_HEIGHT, TILE_SIZE};
 use crate::desktop::Desktop;
 use crate::game::{GameContext, GameState};
 use crate::leaves::StackOfLeaves;
-use crate::rendering::{AssetServer, TextureName, draw_sprite};
-use crate::text_renderer::{FontsHandle, StyleSettings, TextStyle, draw_styled_text};
+use crate::rendering::{draw_sprite, AssetServer, TextureName};
+use crate::text_renderer::{draw_styled_text, FontsHandle, StyleSettings, TextStyle};
 use crate::timer::Timer;
 use crate::typing::{CharacterState, TypingSession};
-use rand::RngExt;
-use raylib::ffi::BlendMode::{BLEND_ADDITIVE, BLEND_ALPHA, BLEND_MULTIPLIED, BLEND_SUBTRACT_COLORS};
+use raylib::ffi::BlendMode::BLEND_MULTIPLIED;
 use raylib::ffi::{BeginBlendMode, CSSPalette, EndBlendMode};
 use raylib::prelude::{Color, RaylibDraw, RaylibDrawHandle, RaylibFont, Vector2};
 use raylib::{RaylibHandle, RaylibThread};
-use raylib::ffi::rlBlendMode::RL_BLEND_ADDITIVE;
 
 pub(crate) unsafe fn draw_ui(
     raylib_handle: &mut RaylibHandle,
@@ -82,7 +80,7 @@ pub(crate) unsafe fn draw_ui(
                 ui_positions::LEAF_WRITING,
             );
         }
-        GameState::TotalPoints => {
+        GameState::TotalPoints {input} => {
             draw_sprite(
                 &mut drawing,
                 asset_server,
@@ -98,6 +96,17 @@ pub(crate) unsafe fn draw_ui(
                 TOTAL_POINTS_SIGN,
                 TextStyle::Huge,
             );
+
+            let restart = "Restart";
+            draw_typable_word(
+                &mut drawing,
+                fonts,
+                restart,
+                input,
+                input_matches_word(&restart, &input),
+                RESTART_WORD,
+             );
+
             let calc_text = &format!(
                 //"You transcribed {} leaves of paper. Out of those {} were copied perfectly.\nYou wrote {} characters while making {} errors.\nYou had a total accuracy of {}%.\nYou typed with a speed of around {} words per minute.",
                 "Perfectly transcribed: {}/{}\n{} mistakes in {} letters\n{}% accuracy with {} wpm",
@@ -189,7 +198,7 @@ fn draw_stack_info(
     );
     match stack.top_word() {
         Some(word) => {
-            draw_stack_word(
+            draw_typable_word(
                 drawing,
                 fonts,
                 &word,
@@ -341,16 +350,6 @@ pub(crate) fn draw_stack_selection(
     );
 }
 
-fn draw_stack_sign(
-    drawing: &mut RaylibDrawHandle,
-    fonts: &FontsHandle,
-    content: &str,
-    position: Vector2,
-    desktop: &Desktop,
-) {
-    todo!()
-}
-
 fn input_matches_word(word: &str, input: &str) -> bool {
     let mut word_characters = word.chars();
     input.chars().all(|input_character| {
@@ -361,7 +360,7 @@ fn input_matches_word(word: &str, input: &str) -> bool {
     })
 }
 
-fn draw_stack_word(
+fn draw_typable_word(
     drawing: &mut RaylibDrawHandle,
     fonts: &FontsHandle,
     word: &str,
@@ -376,9 +375,8 @@ fn draw_stack_word(
         0
     };
     let mut char_x = positon.x;
-    let fading_word = format!("{}...", &word);
 
-    for (index, character) in fading_word.chars().enumerate() {
+    for (index, character) in word.chars().enumerate() {
         let text = character.to_string();
         draw_styled_text(
             drawing,
@@ -417,17 +415,6 @@ pub(crate) fn draw_leaf_writing(
         LEAF_WRITING_WIDTH,
         frame_time,
     );
-    // draw_styled_text(
-    //     drawing,
-    //     fonts,
-    //     &format!(
-    //         "{}/{} characters",
-    //         typing.typed_characters(),
-    //         typing.character_count()
-    //     ),
-    //     Vector2::new(50.0, 620.0),
-    //     TextStyle::Info,
-    // );
 }
 
 pub(crate) fn draw_typing_session(

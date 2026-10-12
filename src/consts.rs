@@ -70,4 +70,8 @@ pub mod ui_positions {
         x: TILE_SIZE * 1.0,
         y: TILE_SIZE * 10.7,
     };
+    pub(crate) const RESTART_WORD: Vector2 = Vector2 {
+        x: TILE_SIZE * 1.0,
+        y: TILE_SIZE * 9.5,
+    };
 }

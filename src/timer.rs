@@ -1,5 +1,4 @@
-use crate::desktop::Desktop;
-use crate::game::{GameContext, GameState};
+use crate::game::GameState;
 
 #[derive(Debug)]
 pub(crate) struct Timer {
@@ -18,7 +17,7 @@ impl Timer {
             self.remaining_seconds = (self.remaining_seconds - delta_seconds).max(0.0);
         }
         if self.remaining_seconds == 0.0 {
-            *game_state = GameState::TotalPoints;
+            *game_state = GameState::TotalPoints {input: "".parse().unwrap() };
         }
     }
 

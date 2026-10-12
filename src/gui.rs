@@ -8,9 +8,11 @@ use crate::text_renderer::{FontsHandle, StyleSettings, TextStyle, draw_styled_te
 use crate::timer::Timer;
 use crate::typing::{CharacterState, TypingSession};
 use rand::RngExt;
-use raylib::ffi::CSSPalette;
+use raylib::ffi::BlendMode::{BLEND_ADDITIVE, BLEND_ALPHA, BLEND_MULTIPLIED, BLEND_SUBTRACT_COLORS};
+use raylib::ffi::{BeginBlendMode, CSSPalette, EndBlendMode};
 use raylib::prelude::{Color, RaylibDraw, RaylibDrawHandle, RaylibFont, Vector2};
 use raylib::{RaylibHandle, RaylibThread};
+use raylib::ffi::rlBlendMode::RL_BLEND_ADDITIVE;
 
 pub(crate) unsafe fn draw_ui(
     raylib_handle: &mut RaylibHandle,
@@ -98,7 +100,7 @@ pub(crate) unsafe fn draw_ui(
             );
             let calc_text = &format!(
                 //"You transcribed {} leaves of paper. Out of those {} were copied perfectly.\nYou wrote {} characters while making {} errors.\nYou had a total accuracy of {}%.\nYou typed with a speed of around {} words per minute.",
-                "Perfectly transcribed: {}/{}\n{} mistakes in {} letters\n{}% accuracy {} wpm",
+                "Perfectly transcribed: {}/{}\n{} mistakes in {} letters\n{}% accuracy with {} wpm",
                 game.desktop.get_perfect_leaves(),
                 game.desktop.get_transcribed_leaves(),
                 game.desktop.get_typing_errors(),
@@ -114,6 +116,20 @@ pub(crate) unsafe fn draw_ui(
                 TextStyle::Info,
             );
         }
+    }
+    unsafe {
+        BeginBlendMode(BLEND_MULTIPLIED as i32);
+    }
+    draw_sprite(
+        &mut drawing,
+        asset_server,
+        TextureName::SepiaOverlay,
+        Vector2::new(0.0, 0.0),
+        0.0,
+        4.0,
+    );
+    unsafe {
+        EndBlendMode();
     }
 }
 

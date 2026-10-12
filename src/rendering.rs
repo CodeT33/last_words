@@ -61,6 +61,7 @@ pub(crate) enum TextureName {
     JohnSurprised,
     LeafBottom,
     LeafTop,
+    SepiaOverlay,
 }
 
 impl TextureName {
@@ -75,6 +76,7 @@ impl TextureName {
             Self::JohnSurprised => "res/textures/character/john.surprised.png",
             Self::LeafTop => "res/textures/leaves/brown_leaf_top.png",
             Self::LeafBottom => "res/textures/leaves/brown_leaf_bottom.png",
+            Self::SepiaOverlay => "res/textures/overlays/sepia_overlay.png",
         }
     }
 }

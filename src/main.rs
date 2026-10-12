@@ -59,6 +59,7 @@ fn main() {
     asset_server
         .load_sprite(&mut raylib_handle, &thread, TextureName::LeafBottom)
         .expect("");
+    asset_server.load_sprite(&mut raylib_handle, &thread, TextureName::SepiaOverlay).expect("");
 
     while !raylib_handle.window_should_close() {
         game.update(raylib_handle.get_frame_time());

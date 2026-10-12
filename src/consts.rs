@@ -1,7 +1,7 @@
 pub(crate) const MAX_WORDS_PER_LEAF: usize = 64;
 pub(crate) const CURSOR_SPEED: f32 = 8.0;
 pub(crate) const LINE_HEIGHT: i32 = 32;
-pub(crate) const COUNTDOWN_IN_SECONDS: u32 = 30;
+pub(crate) const COUNTDOWN_IN_SECONDS: u32 = 60*3;
 pub(crate) const TILE_SIZE: f32 = 64.0;
 pub(crate) const NUMBER_OF_STACKS: u32 = 4;
 pub(crate) const MAX_STACK_HEIGHT: u32 = 8;

@@ -26,12 +26,12 @@ impl Desktop {
     }
 
     pub(crate) fn get_total_points(&self) -> i32 {
-        let mut total_points: i32 = 0;
-        total_points += self.get_saved_chars() as i32;
-        total_points -= (self.get_typing_errors() * 5) as i32;
-        total_points += (self.get_transcribed_leaves() * 50) as i32;
-        total_points *= (2 * self.get_perfect_leaves() + 1) as i32;
-        total_points
+        let mut total_points: f32 = 0.0;
+        total_points += self.get_saved_chars() as f32;
+        total_points -= self.get_typing_errors() as f32 * 5.0;
+        total_points *= 0.2 * self.get_transcribed_leaves() as f32 + 1.0;
+        total_points *= 0.5 * self.get_perfect_leaves() as f32 + 1.0;
+        total_points as i32
     }
 
     pub(crate) fn get_saved_chars(&self) -> usize {
